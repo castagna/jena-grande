@@ -24,12 +24,14 @@ import java.util.Iterator;
 import org.apache.giraph.graph.EdgeListVertex;
 import org.apache.giraph.graph.GiraphJob;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.jena.grande.Constants;
 import org.apache.jena.grande.Utils;
 import org.apache.jena.grande.mapreduce.io.NodeWritable;
 import org.slf4j.Logger;
@@ -91,6 +93,14 @@ public class FoafShortestPathsVertex  extends EdgeListVertex<NodeWritable, IntWr
 	public int run(String[] args) throws Exception {
 		log.debug("run({})", Utils.toString(args));
 		Preconditions.checkArgument(args.length == 4, "run: Must have 4 arguments <input path> <output path> <source vertex uri> <# of workers>");
+
+		Configuration configuration = getConf();
+        boolean overrideOutput = configuration.getBoolean(Constants.OPTION_OVERWRITE_OUTPUT, Constants.OPTION_OVERWRITE_OUTPUT_DEFAULT);
+        FileSystem fs = FileSystem.get(new Path(args[1]).toUri(), configuration);
+        if ( overrideOutput ) {
+            fs.delete(new Path(args[1]), true);
+        }
+
 		GiraphJob job = new GiraphJob(getConf(), getClass().getName());
 		job.setVertexClass(getClass());
 		job.setVertexInputFormatClass(TurtleVertexInputFormat.class);

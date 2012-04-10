@@ -69,7 +69,7 @@ public class Rdf2AdjacencyListDriver extends Configured implements Tool {
     	    configuration.set("mapred.map.output.compression.codec", "org.apache.hadoop.io.compress.GzipCodec");
         }
 
-        boolean overrideOutput = configuration.getBoolean(Constants.OPTION_OVERRIDE_OUTPUT, Constants.OPTION_OVERRIDE_OUTPUT_DEFAULT);
+        boolean overrideOutput = configuration.getBoolean(Constants.OPTION_OVERWRITE_OUTPUT, Constants.OPTION_OVERWRITE_OUTPUT_DEFAULT);
         FileSystem fs = FileSystem.get(new Path(args[1]).toUri(), configuration);
         if ( overrideOutput ) {
             fs.delete(new Path(args[1]), true);

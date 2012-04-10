@@ -37,8 +37,8 @@ public class Constants {
 	public static final String OPTION_USE_COMPRESSION = "useCompression";
 	public static final boolean OPTION_USE_COMPRESSION_DEFAULT = false;
 
-	public static final String OPTION_OVERRIDE_OUTPUT = "overrideOutput";
-	public static final boolean OPTION_OVERRIDE_OUTPUT_DEFAULT = false;
+	public static final String OPTION_OVERWRITE_OUTPUT = "overwriteOutput";
+	public static final boolean OPTION_OVERWRITE_OUTPUT_DEFAULT = false;
 
 	public static final String OPTION_RUN_LOCAL = "runLocal";
 	public static final boolean OPTION_RUN_LOCAL_DEFAULT = false;

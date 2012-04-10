@@ -24,7 +24,7 @@ public class TestRdf2AdjacencyList {
     @Test public void test() throws Exception {
         String input = "src/test/resources/data2.nt" ;
         String[] args = new String[] {
-                "-D", Constants.OPTION_OVERRIDE_OUTPUT + "=true", 
+                "-D", Constants.OPTION_OVERWRITE_OUTPUT + "=true", 
         		"-D", Constants.OPTION_RUN_LOCAL + "=true",
                 input, 
                 output
