@@ -48,6 +48,13 @@
       <version>${pig.version}</version>
     </dependency>
 
+    <!-- This is a runtime dependency for Pig -->
+    <dependency>
+      <groupId>org.antlr</groupId>
+      <artifactId>antlr-runtime</artifactId>
+      <version>3.4-beta4</version>
+    </dependency>
+
     <dependency>
       <groupId>org.apache.hbase</groupId>
       <artifactId>hbase</artifactId>
