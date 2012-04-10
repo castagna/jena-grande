@@ -49,6 +49,7 @@ public class Rdf2AdjacencyListReducer extends Reducer<NodeWritable, QuadWritable
 	private static final String DOT = ". ";
 	
 	static final boolean useDefaultPrefixes = false;
+	static final boolean outputBacklinks = true;
 	
 	@Override
 	public void reduce(NodeWritable node, Iterable<QuadWritable> values, Context context) throws IOException, InterruptedException {
@@ -73,30 +74,34 @@ public class Rdf2AdjacencyListReducer extends Reducer<NodeWritable, QuadWritable
 		}
 
 		StringBuilder sb = new StringBuilder();
-		sb.append(encode(n));
-		sb.append(SPACE);
-		for (Node p : outgoing.keySet()) {
-			sb.append(encode(p));
+		if ( outgoing.keySet().size() > 0 ) {
+			sb.append(encode(n));
 			sb.append(SPACE);
-			boolean first = true;
-			for (Node o : outgoing.get(p)) {
-				if (!first) sb.append(COMMA); else first = false;
-				sb.append(encode(o));
-			}
-			sb.append(SEMICOLON);
-		}
-		sb.append(DOT);
-		
-		// TODO: This should be optional, it can cause problems if there are a lot of incoming links...
-		for (Node p : incoming.keySet()) {
-			for (Node o : outgoing.get(p)) {
-				sb.append(encode(o));
-				sb.append(SPACE);
+			for (Node p : outgoing.keySet()) {
 				sb.append(encode(p));
 				sb.append(SPACE);
-				sb.append(encode(n));
-				sb.append(DOT);				
+				boolean first = true;
+				for (Node o : outgoing.get(p)) {
+					if (!first) sb.append(COMMA); else first = false;
+					sb.append(encode(o));
+				}
+				sb.append(SEMICOLON);
 			}
+			sb.append(DOT);
+		}
+		
+		// TODO: This should be optional, it can cause problems if there are a lot of incoming links...
+		if ( ( outputBacklinks ) && ( outgoing.keySet().size() > 0 ) ) {
+			for (Node p : incoming.keySet()) {
+				for (Node o : incoming.get(p)) {
+					sb.append(encode(o));
+					sb.append(SPACE);
+					sb.append(encode(p));
+					sb.append(SPACE);
+					sb.append(encode(n));
+					sb.append(DOT);				
+				}
+			}			
 		}
 		
 		value.set(sb.toString());

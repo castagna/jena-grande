@@ -16,23 +16,27 @@
  * limitations under the License.
  */
 
-package org.apache.jena.grande.pig;
+package org.apache.jena.grande.giraph;
 
 import java.io.IOException;
 
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.RecordReader;
+import org.apache.giraph.graph.VertexWriter;
+import org.apache.giraph.lib.TextVertexOutputFormat;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.jena.grande.mapreduce.io.QuadRecordReader;
-import org.apache.jena.grande.mapreduce.io.QuadWritable;
-import org.apache.pig.backend.hadoop.executionengine.mapReduceLayer.PigFileInputFormat;
+import org.apache.jena.grande.mapreduce.io.NodeWritable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class NQuadsPigInputFormat extends PigFileInputFormat<LongWritable, QuadWritable> {
+public class TurtleVertexOutputFormat extends TextVertexOutputFormat<NodeWritable, Text, NodeWritable> {
 
+	private static final Logger log = LoggerFactory.getLogger(TurtleVertexInputFormat.class);
+	
 	@Override
-	public RecordReader<LongWritable, QuadWritable> createRecordReader(InputSplit split, TaskAttemptContext context) throws IOException, InterruptedException {
-		return new QuadRecordReader();
+	public VertexWriter<NodeWritable, Text, NodeWritable> createVertexWriter(TaskAttemptContext context) throws IOException, InterruptedException {
+		VertexWriter<NodeWritable, Text, NodeWritable> result = new TurtleVertexWriter(textOutputFormat.getRecordWriter(context));
+		log.debug("createVertexWriter({}) --> {}", context, result);
+		return result;
 	}
-
+	
 }

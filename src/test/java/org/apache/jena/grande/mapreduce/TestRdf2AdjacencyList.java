@@ -45,7 +45,6 @@ public class TestRdf2AdjacencyList {
             	sb.append("> .\n");
         	}
         	sb.append (IO.readWholeFileAsUTF8(outputfile));
-        	System.out.println(sb.toString());
             Graph graph = RiotLoader.graphFromString(sb.toString(), Lang.TURTLE, "");
             m2 = ModelFactory.createModelForGraph(graph);
         } else {

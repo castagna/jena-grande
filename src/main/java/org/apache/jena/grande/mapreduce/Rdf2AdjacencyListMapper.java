@@ -56,7 +56,7 @@ public class Rdf2AdjacencyListMapper extends Mapper<LongWritable, QuadWritable, 
 		Node s = quad.getSubject();
         emit (s, value, context);
 
-        Node o = quad.getSubject();
+        Node o = quad.getObject();
         if ( o.isURI() ) {
         	emit (o, value, context);
         }

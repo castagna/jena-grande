@@ -1,0 +1,6 @@
+<http://example.org/alice> <http://xmlns.com/foaf/0.1/mbox> <mailto:alice@example.org>; <http://xmlns.com/foaf/0.1/name> "Alice"; <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Person>; <http://xmlns.com/foaf/0.1/knows> <http://example.org/charlie>, <http://example.org/bob>, <http://example.org/snoopy>; . <http://example.org/charlie> <http://xmlns.com/foaf/0.1/knows> <http://example.org/alice>. 
+<http://example.org/bob> <http://xmlns.com/foaf/0.1/name> "Bob"; <http://xmlns.com/foaf/0.1/knows> <http://example.org/charlie>; . <http://example.org/alice> <http://xmlns.com/foaf/0.1/knows> <http://example.org/bob>. 
+<http://example.org/charlie> <http://xmlns.com/foaf/0.1/name> "Charlie"; <http://xmlns.com/foaf/0.1/knows> <http://example.org/alice>; . <http://example.org/bob> <http://xmlns.com/foaf/0.1/knows> <http://example.org/charlie>. <http://example.org/alice> <http://xmlns.com/foaf/0.1/knows> <http://example.org/charlie>. 
+
+
+
