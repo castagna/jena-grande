@@ -4,23 +4,23 @@
 
 
   Jena Grande is a collection of utilities, experiments and examples on 
-  how to use MapReduce, Pig, HBase and Giraph to process RDF data.
+  how to use MapReduce, Pig, HBase or Giraph to process data in RDF format.
 
   RDF data model is a labelled directed multigraph. URIs are used to give 
-  globally unique names to nodes and labels. A destination node (a.k.a. an
-  object in an RDF statement) can be an attibute value (a.k.a. literal).
-  Nodes can also be unnamed (a.k.a. blank nodes).
+  globally unique names to nodes and labelled links (a.k.a. properties in
+  the RDF lingo). A destination node (a.k.a. an object in an RDF statement) 
+  can be an attribute value (a.k.a. literal). Nodes can also be unnamed 
+  (a.k.a. blank nodes).
 
-  Apache Jena is a Java library, currently in incubation and about to 
-  graduate, to help you parse, store and query RDF data.  
+  Apache Jena is a Java library, currently in incubation, which can help 
+  you parsing, storing and querying RDF data.  
 
-  This is very much work in progress and if you have experience with 
-  processing RDF data with any of the Hadoop ecosystem's projects above
-  feel free to fork this and submit your pull requests sharing your 
-  experience.
+  This is to be considered experimental and work in progress. If you want 
+  to share your experience on processing RDF data with any of the Hadoop 
+  ecosystem's projects, please, do fork this and send your pull requests.
 
-  If the graph you need to process ins't RDF, some of the tricks shared
-  here might be useful to you anyway.
+  If the graph you need to process isn't RDF, some of the tricks shared
+  here might be useful to you for other type of graphs.
 
   Have fun!
   

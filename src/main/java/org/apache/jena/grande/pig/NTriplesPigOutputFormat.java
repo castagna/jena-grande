@@ -16,20 +16,23 @@
  * limitations under the License.
  */
 
-package org.apache.jena.grande.mapreduce.io;
+package org.apache.jena.grande.pig;
 
 import java.io.IOException;
 
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.jena.grande.mapreduce.io.TripleRecordWriter;
+import org.apache.jena.grande.mapreduce.io.TripleWritable;
 
-public class NQuadsOutputFormat extends FileOutputFormat<NullWritable, QuadWritable> {
+
+public class NTriplesPigOutputFormat extends FileOutputFormat<NullWritable, TripleWritable> {
 
 	@Override
-	public RecordWriter<NullWritable, QuadWritable> getRecordWriter(TaskAttemptContext context) throws IOException, InterruptedException {
-		return new QuadRecordWriter();
+	public TripleRecordWriter getRecordWriter(TaskAttemptContext context) throws IOException, InterruptedException {
+		return new TripleRecordWriter();
 	}
+
 
 }

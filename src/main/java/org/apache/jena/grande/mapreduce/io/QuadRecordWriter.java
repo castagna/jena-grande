@@ -20,14 +20,14 @@ package org.apache.jena.grande.mapreduce.io;
 
 import java.io.IOException;
 
-import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
-public class QuadRecordWriter extends RecordWriter<LongWritable, QuadWritable> {
+public class QuadRecordWriter extends RecordWriter<NullWritable, QuadWritable> {
 
 	@Override
-	public void write(LongWritable key, QuadWritable value) throws IOException, InterruptedException {
+	public void write(NullWritable key, QuadWritable value) throws IOException, InterruptedException {
 		// TODO
 	}
 

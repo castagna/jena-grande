@@ -23,13 +23,18 @@ import java.io.IOException;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-public class NQuadsOutputFormat extends FileOutputFormat<NullWritable, QuadWritable> {
+public class TripleRecordWriter extends RecordWriter<NullWritable, TripleWritable> {
 
 	@Override
-	public RecordWriter<NullWritable, QuadWritable> getRecordWriter(TaskAttemptContext context) throws IOException, InterruptedException {
-		return new QuadRecordWriter();
+	public void write(NullWritable key, TripleWritable value) throws IOException, InterruptedException {
+		// TODO Auto-generated method stub
 	}
 
+	@Override
+	public void close(TaskAttemptContext context) throws IOException, InterruptedException {
+		// TODO Auto-generated method stub
+	}
+
+    
 }
