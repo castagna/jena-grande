@@ -23,16 +23,22 @@ import java.io.IOException;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class QuadRecordWriter extends RecordWriter<NullWritable, QuadWritable> {
 
+	private static final Logger log = LoggerFactory.getLogger(QuadRecordWriter.class);
+	
 	@Override
 	public void write(NullWritable key, QuadWritable value) throws IOException, InterruptedException {
+		log.debug("write({}, {})", key, value);
 		// TODO
 	}
 
 	@Override
 	public void close(TaskAttemptContext context) throws IOException, InterruptedException {
+		log.debug("close({})", context);
 		// TODO
 	}
     

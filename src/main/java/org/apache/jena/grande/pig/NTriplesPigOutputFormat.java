@@ -21,18 +21,23 @@ package org.apache.jena.grande.pig;
 import java.io.IOException;
 
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.jena.grande.mapreduce.io.TripleRecordWriter;
 import org.apache.jena.grande.mapreduce.io.TripleWritable;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class NTriplesPigOutputFormat extends FileOutputFormat<NullWritable, TripleWritable> {
 
-	@Override
-	public TripleRecordWriter getRecordWriter(TaskAttemptContext context) throws IOException, InterruptedException {
-		return new TripleRecordWriter();
-	}
+	private static final Logger log = LoggerFactory.getLogger(NTriplesPigOutputFormat.class);
 
+	@Override
+	public RecordWriter<NullWritable, TripleWritable> getRecordWriter(TaskAttemptContext context) throws IOException, InterruptedException {
+		RecordWriter<NullWritable, TripleWritable> recordWriter = new TripleRecordWriter();
+		log.debug("getRecordWriter({}) --> {}", context, recordWriter);
+		return recordWriter;
+	}
 
 }

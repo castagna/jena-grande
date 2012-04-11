@@ -27,12 +27,18 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.jena.grande.mapreduce.io.QuadRecordReader;
 import org.apache.jena.grande.mapreduce.io.QuadWritable;
 import org.apache.pig.backend.hadoop.executionengine.mapReduceLayer.PigFileInputFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class NQuadsPigInputFormat extends PigFileInputFormat<LongWritable, QuadWritable> {
 
+    private static final Logger log = LoggerFactory.getLogger(NQuadsPigInputFormat.class);
+	
 	@Override
 	public RecordReader<LongWritable, QuadWritable> createRecordReader(InputSplit split, TaskAttemptContext context) throws IOException, InterruptedException {
-		return new QuadRecordReader();
+		RecordReader<LongWritable, QuadWritable> reader = new QuadRecordReader();
+		log.debug("createRecordReader({}, {}) --> {}", new Object[]{split,context,reader});
+		return reader;
 	}
 
 }

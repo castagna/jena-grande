@@ -34,12 +34,12 @@ public class TurtleVertexWriter extends TextVertexWriter<NodeWritable, Text, Nod
 	
 	public TurtleVertexWriter(RecordWriter<Text, Text> lineRecordWriter) {
 		super(lineRecordWriter);
-		log.debug("TurtleVertexWriter({})", lineRecordWriter.toString());
+		log.info("TurtleVertexWriter({})", lineRecordWriter.toString());
 	}
 
 	@Override
 	public void writeVertex(BasicVertex<NodeWritable, Text, NodeWritable, ?> vertex) throws IOException, InterruptedException {
-		log.debug("write({},{})", new Object[]{vertex.getVertexId(), vertex.getVertexValue()});
+		log.info("write({},{})", new Object[]{vertex.getVertexId(), vertex.getVertexValue()});
 		// TODO: this must be done differently, or not?
 		getRecordWriter().write (vertex.getVertexValue(), null);
 	}

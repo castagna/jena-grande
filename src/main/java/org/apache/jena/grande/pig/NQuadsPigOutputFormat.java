@@ -26,12 +26,18 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.jena.grande.mapreduce.io.QuadRecordWriter;
 import org.apache.jena.grande.mapreduce.io.QuadWritable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class NQuadsPigOutputFormat extends FileOutputFormat<NullWritable, QuadWritable> {
 
+    private static final Logger log = LoggerFactory.getLogger(NQuadsPigOutputFormat.class);
+
 	@Override
 	public RecordWriter<NullWritable, QuadWritable> getRecordWriter(TaskAttemptContext context) throws IOException, InterruptedException {
-		return new QuadRecordWriter();
+		RecordWriter<NullWritable, QuadWritable> writer = new QuadRecordWriter();
+		log.debug("getRecordWriter({}) --> {}", context, writer);
+		return writer;
 	}
 
 

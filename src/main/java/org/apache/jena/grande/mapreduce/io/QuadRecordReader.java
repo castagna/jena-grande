@@ -20,19 +20,14 @@ package org.apache.jena.grande.mapreduce.io;
 
 import java.io.IOException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.Seekable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.compress.CodecPool;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.CompressionCodecFactory;
-import org.apache.hadoop.io.compress.Decompressor;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
@@ -43,68 +38,57 @@ import org.openjena.riot.lang.LangNQuads;
 import org.openjena.riot.system.ParserProfile;
 import org.openjena.riot.tokens.Tokenizer;
 import org.openjena.riot.tokens.TokenizerFactory;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class QuadRecordReader extends RecordReader<LongWritable, QuadWritable> {
 
-    private static final Log LOG = LogFactory.getLog(QuadRecordReader.class);
+    private static final Logger log = LoggerFactory.getLogger(QuadRecordReader.class);
+
     public static final String MAX_LINE_LENGTH = "mapreduce.input.linerecordreader.line.maxlength";
 
-    private LongWritable key = null;
-    private Text value = null;
-    private QuadWritable quad = null;
-    
+    private CompressionCodecFactory compressionCodecs = null;
     private long start;
     private long pos;
     private long end;
-    
     private LineReader in;
-    private FSDataInputStream fileIn;
-    private Seekable filePosition;
-
-    private ParserProfile profile;
-    
     private int maxLineLength;
-//    private Counter inputByteCounter;
-
-    private CompressionCodecFactory compressionCodecs = null;
-    private CompressionCodec codec;
-    private Decompressor decompressor;
+    private LongWritable key = null;
+    private Text value = null;
+    private QuadWritable quad = null;
+    private ParserProfile profile = null;
     
-//    @SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
     public void initialize(InputSplit genericSplit, TaskAttemptContext context) throws IOException, InterruptedException {
+		log.debug("initialize({}, {})", genericSplit, context);
+
         FileSplit split = (FileSplit) genericSplit;
-        
-        // RIOT configuration 
-        profile = Utils.createParserProfile(context, split.getPath());
-        
-//        inputByteCounter = ((MapContext)context).getCounter(FileInputFormat.Counter.BYTES_READ);
+        profile = Utils.createParserProfile(context, split.getPath()); // RIOT configuration
         Configuration job = context.getConfiguration();
         this.maxLineLength = job.getInt(MAX_LINE_LENGTH, Integer.MAX_VALUE);
         start = split.getStart();
         end = start + split.getLength();
         final Path file = split.getPath();
         compressionCodecs = new CompressionCodecFactory(job);
-        codec = compressionCodecs.getCodec(file);
+        final CompressionCodec codec = compressionCodecs.getCodec(file);
 
         // open the file and seek to the start of the split
-        final FileSystem fs = file.getFileSystem(job);
-        fileIn = fs.open(file);
-        if (isCompressedInput()) {
-            decompressor = CodecPool.getDecompressor(codec);
-            in = new LineReader(codec.createInputStream(fileIn, decompressor), job);
-            filePosition = fileIn;
+        FileSystem fs = file.getFileSystem(job);
+        FSDataInputStream fileIn = fs.open(file);
+        boolean skipFirstLine = false;
+        if (codec != null) {
+            in = new LineReader(codec.createInputStream(fileIn), job);
+            end = Long.MAX_VALUE;
         } else {
-            fileIn.seek(start);
+            if (start != 0) {
+                skipFirstLine = true;
+                --start;
+                fileIn.seek(start);
+            }
             in = new LineReader(fileIn, job);
-            filePosition = fileIn;
         }
-        // If this is not the first split, we always throw away first record
-        // because we always (except the last split) read one extra line in
-        // next() method.
-        if (start != 0) {
-            start += in.readLine(new Text(), 0, maxBytesToConsume(start));
+        if (skipFirstLine) {  // skip first line and re-establish "start".
+            start += in.readLine(new Text(), 0, (int)Math.min((long)Integer.MAX_VALUE, end - start));
         }
         this.pos = start;
     }
@@ -120,9 +104,8 @@ public class QuadRecordReader extends RecordReader<LongWritable, QuadWritable> {
             quad = null;
         }
         int newSize = 0;
-        // We always read one extra line, which lies outside the upper split limit i.e. (end - 1)
-        while (getFilePosition() <= end) {
-            newSize = in.readLine(value, maxLineLength, Math.max(maxBytesToConsume(pos), maxLineLength));
+        while (pos < end) {
+            newSize = in.readLine(value, maxLineLength, Math.max((int)Math.min(Integer.MAX_VALUE, end-pos), maxLineLength));
             Tokenizer tokenizer = TokenizerFactory.makeTokenizerASCII(value.toString()) ;
             LangNQuads parser = new LangNQuads(tokenizer, profile, null) ;
             if ( parser.hasNext() ) {
@@ -132,70 +115,50 @@ public class QuadRecordReader extends RecordReader<LongWritable, QuadWritable> {
                 break;
             }
             pos += newSize;
-//            inputByteCounter.increment(newSize);
             if (newSize < maxLineLength) {
                 break;
             }
-            LOG.info("Skipped line of size " + newSize + " at pos " + (pos - newSize));
+            log.info("Skipped line of size " + newSize + " at pos " + (pos - newSize));
         }
+        boolean result = true;
         if (newSize == 0) {
             key = null;
             value = null;
             quad = null;
-            return false;
-        } else {
-            return true;
+            result = false;
         }
+        log.debug("nextKeyValue() --> {}", result); 
+        return result;
     }
 
     @Override
     public LongWritable getCurrentKey() throws IOException, InterruptedException {
+    	log.debug("getCurrentKey() --> {}", key);
         return key;
     }
 
     @Override
     public QuadWritable getCurrentValue() throws IOException, InterruptedException {
+    	log.debug("getCurrentValue() --> {}", quad);
         return quad;
     }
 
     @Override
     public float getProgress() throws IOException, InterruptedException {
-        if (start == end) {
-            return 0.0f;
-        } else {
-            return Math.min(1.0f, (getFilePosition() - start) / (float) (end - start));
+    	float progress = 0.0f;
+        if (start != end) {
+            progress = Math.min(1.0f, (pos - start) / (float) (end - start));
         }
+        log.debug("getProgress() --> {}", progress);
+        return progress;
     }
 
     @Override
     public void close() throws IOException {
-        try {
-            if (in != null) {
-                in.close();
-            }
-        } finally {
-            if (decompressor != null) {
-                CodecPool.returnDecompressor(decompressor);
-            }
+    	log.debug("close()");
+        if (in != null) {
+            in.close(); 
         }
-    }
-    
-    private boolean isCompressedInput() {
-        return (codec != null);
-    }
-    
-    private int maxBytesToConsume(long pos) {
-        return isCompressedInput() ? Integer.MAX_VALUE : (int) Math.min(Integer.MAX_VALUE, end - pos);
-    }
-
-    private long getFilePosition() throws IOException {
-        long retVal;
-        if (isCompressedInput() && null != filePosition) {
-            retVal = filePosition.getPos();
-        } else {
-            retVal = pos;
-        }
-        return retVal;
     }
     
 }
