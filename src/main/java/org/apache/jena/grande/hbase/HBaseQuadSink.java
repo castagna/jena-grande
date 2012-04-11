@@ -35,7 +35,7 @@ public class HBaseQuadSink implements Sink<Quad> {
 
 	private static final Logger log = LoggerFactory.getLogger( HBaseQuadSink.class );
 	
-	private static final byte[] family = Bytes.toBytes("SPOG");
+	// private static final byte[] family = Bytes.toBytes("SPOG");
 	private static final byte[] p = Bytes.toBytes("P");
 	private static final byte[] o = Bytes.toBytes("O");
 	private static final byte[] g = Bytes.toBytes("G");
@@ -46,6 +46,7 @@ public class HBaseQuadSink implements Sink<Quad> {
 
 	public HBaseQuadSink ( HTable table ) {
 		this.table = table;
+		this.table.setAutoFlush(false);
 	}
 	
 	@Override
