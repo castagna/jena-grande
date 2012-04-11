@@ -19,22 +19,27 @@
 package org.apache.jena.grande.examples;
 
 import java.io.IOException;
+import java.io.StringWriter;
 
-import org.apache.pig.PigServer;
+import org.apache.jena.grande.pig.Sparql2PigLatinWriter;
 
-public class RunPig {
-	
-	private static final String output = "./target/output";
+import com.hp.hpl.jena.query.Query;
+import com.hp.hpl.jena.query.QueryFactory;
+import com.hp.hpl.jena.sparql.algebra.Algebra;
+import com.hp.hpl.jena.sparql.algebra.Op;
+
+public class RunPigSparql2PigLatin {
 
 	public static void main(String[] args) throws IOException {
-		PigServer pig = new PigServer("local");
-		pig.deleteFile(output);
-		// pig.debugOn();
-		// pig.registerJar("./target/jena-grande-0.1-SNAPSHOT.jar");
-		pig.registerQuery("quads = LOAD './src/test/resources/data.nq' USING org.apache.jena.grande.pig.RdfStorage() AS (g,s,p,o);");
-		pig.registerQuery("a = FILTER quads BY ( p == '<http://xmlns.com/foaf/0.1/name>' ) ;");
-		pig.registerQuery("b = FILTER a BY ( o == '\"Bob\"' ) ;");
-		pig.store("b", output, "org.apache.jena.grande.pig.RdfStorage()");
+		Query query = QueryFactory.read("src/test/resources/query.rq");
+//		PrintUtils.printOp(IndentedWriter.stdout, query, true);
+
+		Op op = Algebra.compile(query);
+		
+		StringWriter out = new StringWriter();
+		op.visit(new Sparql2PigLatinWriter(out));
+		
+		System.out.println(out.toString());
 	}
 
 }
