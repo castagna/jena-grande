@@ -20,7 +20,8 @@ import com.hp.hpl.jena.sparql.core.Quad;
 public class RunHBaseRdf {
 
 	private final static HBaseTestingUtility testing = new HBaseTestingUtility();
-	private final static String filename = "src/test/resources/data.nq";
+//	private final static String filename = "src/test/resources/data.nq";
+	private final static String filename = "/opt/datasets/raw/foodista/foodista.nt";
 	
 	public static void main(String[] args) throws Exception {
 		MiniHBaseCluster cluster = testing.startMiniCluster();
