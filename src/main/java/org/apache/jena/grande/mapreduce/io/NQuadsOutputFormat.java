@@ -19,17 +19,42 @@
 package org.apache.jena.grande.mapreduce.io;
 
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.compress.CompressionCodec;
+import org.apache.hadoop.io.compress.GzipCodec;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.util.ReflectionUtils;
 
 public class NQuadsOutputFormat extends FileOutputFormat<NullWritable, QuadWritable> {
 
 	@Override
 	public RecordWriter<NullWritable, QuadWritable> getRecordWriter(TaskAttemptContext context) throws IOException, InterruptedException {
-		return new QuadRecordWriter();
+	    Configuration conf = context.getConfiguration();
+	    boolean isCompressed = getCompressOutput(context);
+	    CompressionCodec codec = null;
+	    String extension = "";
+	    if (isCompressed) {
+	    	Class<? extends CompressionCodec> codecClass =  getOutputCompressorClass(context, GzipCodec.class);
+	    	codec = (CompressionCodec) ReflectionUtils.newInstance(codecClass, conf);
+	    	extension = codec.getDefaultExtension();
+	    }
+	    Path file = getDefaultWorkFile(context, extension);
+	    FileSystem fs = file.getFileSystem(conf);
+	    if (!isCompressed) {
+	    	FSDataOutputStream fileOut = fs.create(file, false);
+	    	return new QuadRecordWriter(new OutputStreamWriter(fileOut));
+	    } else {
+	    	FSDataOutputStream fileOut = fs.create(file, false);
+	    	return new QuadRecordWriter(new OutputStreamWriter(codec.createOutputStream(fileOut)));
+	    }
 	}
 
 }

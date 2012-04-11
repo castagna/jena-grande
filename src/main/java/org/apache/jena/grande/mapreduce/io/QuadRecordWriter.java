@@ -19,10 +19,12 @@
 package org.apache.jena.grande.mapreduce.io;
 
 import java.io.IOException;
+import java.io.Writer;
 
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.openjena.riot.out.OutputLangUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,16 +32,22 @@ public class QuadRecordWriter extends RecordWriter<NullWritable, QuadWritable> {
 
 	private static final Logger log = LoggerFactory.getLogger(QuadRecordWriter.class);
 	
+	private Writer out;
+	
+	public QuadRecordWriter(Writer out) {
+		this.out = out;
+	}
+	
 	@Override
 	public void write(NullWritable key, QuadWritable value) throws IOException, InterruptedException {
 		log.debug("write({}, {})", key, value);
-		// TODO
+		OutputLangUtils.output(out, value.getQuad(), null, null);
 	}
 
 	@Override
 	public void close(TaskAttemptContext context) throws IOException, InterruptedException {
 		log.debug("close({})", context);
-		// TODO
+		out.close();
 	}
     
 }

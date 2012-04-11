@@ -10,13 +10,10 @@ public class RunPig {
 		PigServer pig = new PigServer("local");
 		// pig.debugOn();
 		pig.registerJar("./target/jena-grande-0.1-SNAPSHOT.jar");
-		// pig.registerQuery("quads = LOAD './src/test/resources/data.nq' AS (x);");
 		pig.registerQuery("quads = LOAD './src/test/resources/data.nq' USING org.apache.jena.grande.pig.RdfStorage() AS (g,s,p,o);");
-		// pig.registerQuery("quads = LOAD './src/test/resources/data.nq' USING org.apache.jena.grande.pig.RdfStorage() AS (g,s,p,o);");
-		pig.registerQuery("STORE quads INTO './target/output-quads';");
-		// pig.registerQuery("a = FILTER quads BY ( p == '<http://xmlns.com/foaf/0.1/name>' ) ;");
-		// pig.registerQuery("b = FILTER a BY ( o == '\"Bob\"' ) ;");
-		// pig.store("b", "./target", "org.apache.jena.grande.pig.RdfStorage()");
+		pig.registerQuery("a = FILTER quads BY ( p == '<http://xmlns.com/foaf/0.1/name>' ) ;");
+		pig.registerQuery("b = FILTER a BY ( o == '\"Bob\"' ) ;");
+		pig.store("b", "./target/output", "org.apache.jena.grande.pig.RdfStorage()");
 	}
 
 }

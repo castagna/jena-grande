@@ -23,19 +23,18 @@ import java.io.IOException;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.jena.grande.mapreduce.io.QuadRecordWriter;
+import org.apache.jena.grande.mapreduce.io.NQuadsOutputFormat;
 import org.apache.jena.grande.mapreduce.io.QuadWritable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NQuadsPigOutputFormat extends FileOutputFormat<NullWritable, QuadWritable> {
+public class NQuadsPigOutputFormat extends NQuadsOutputFormat {
 
     private static final Logger log = LoggerFactory.getLogger(NQuadsPigOutputFormat.class);
 
 	@Override
 	public RecordWriter<NullWritable, QuadWritable> getRecordWriter(TaskAttemptContext context) throws IOException, InterruptedException {
-		RecordWriter<NullWritable, QuadWritable> writer = new QuadRecordWriter();
+		RecordWriter<NullWritable, QuadWritable> writer = super.getRecordWriter(context);
 		log.debug("getRecordWriter({}) --> {}", context, writer);
 		return writer;
 	}
