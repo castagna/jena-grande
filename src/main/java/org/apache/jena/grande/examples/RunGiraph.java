@@ -1,39 +1,48 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.jena.grande.examples;
 
+import java.util.Map;
+
+import junit.framework.Assert;
+
 import org.apache.giraph.examples.SimpleShortestPathsVertex;
-import org.apache.giraph.examples.SimpleShortestPathsVertex.SimpleShortestPathsVertexInputFormat;
-import org.apache.giraph.examples.SimpleShortestPathsVertex.SimpleShortestPathsVertexOutputFormat;
-import org.apache.giraph.graph.GiraphJob;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.giraph.utils.InternalVertexRunner;
 
 public class RunGiraph {
 
 	public static void main(String[] args) throws Exception {
-	    GiraphJob job = new GiraphJob("shortest paths");
-	    Configuration conf = job.getConfiguration();
-	    conf.setBoolean(GiraphJob.SPLIT_MASTER_WORKER, false);
-	    conf.setBoolean(GiraphJob.LOCAL_TEST_MODE, true);
-	    // conf.set(GiraphJob.ZOOKEEPER_JAR, "file://target/dependency/zookeeper-3.3.3.jar");
-	    job.setWorkerConfiguration(1, 1, 100.0f);
+	    Iterable<String> results = InternalVertexRunner.run(
+	    	SimpleShortestPathsVertex.class,
+	        SimpleShortestPathsVertex.SimpleShortestPathsVertexInputFormat.class,
+	        SimpleShortestPathsVertex.SimpleShortestPathsVertexOutputFormat.class,
+	        RunGiraphTest.params, 
+	        RunGiraphTest.graph
+	    );
 
-	    job.setVertexClass(SimpleShortestPathsVertex.class);
-	    job.setVertexInputFormatClass(SimpleShortestPathsVertexInputFormat.class);
-	    job.setVertexOutputFormatClass(SimpleShortestPathsVertexOutputFormat.class);
-	    
-	    // input
-	    FileInputFormat.addInputPath(job.getInternalJob(), new Path("src/main/resources/giraph1.txt"));
-	    
-	    // output
-	    Path outputPath = new Path("target/giraph1");
-	    FileSystem hdfs = FileSystem.get(conf);
-	    hdfs.delete(outputPath, true);
-	    FileOutputFormat.setOutputPath(job.getInternalJob(), outputPath);
-
-	    job.run(true);
+	    Map<Long, Double> distances = RunGiraphTest.parseDistances(results);
+	    Assert.assertNotNull(distances);
+	    Assert.assertEquals(4, distances.size());
+	    Assert.assertEquals(0.0, distances.get(1L));
+	    Assert.assertEquals(1.0, distances.get(2L));
+	    Assert.assertEquals(2.0, distances.get(3L));
+	    Assert.assertEquals(4.0, distances.get(4L));
 	}
-
+	
 }
