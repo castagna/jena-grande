@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Iterator;
 
-import org.apache.jena.grande.NodeEncoder;
 import org.openjena.atlas.lib.Sink;
 import org.openjena.atlas.lib.Tuple;
 import org.openjena.atlas.logging.ProgressLogger;

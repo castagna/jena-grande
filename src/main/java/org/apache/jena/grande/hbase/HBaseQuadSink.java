@@ -47,6 +47,10 @@ public class HBaseQuadSink implements Sink<Quad> {
 	public HBaseQuadSink ( HTable table ) {
 		this.table = table;
 		this.table.setAutoFlush(false);
+		
+		// table.getTableDescriptor().hasFamily(familyName);
+		// table.getTableDescriptor().getFamily(new byte[]{});
+		// table.getTableDescriptor().get
 	}
 	
 	@Override
