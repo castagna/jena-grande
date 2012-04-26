@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.jena.grande.examples;
+package dev;
 
 import java.util.Map;
 

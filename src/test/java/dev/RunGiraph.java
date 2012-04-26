@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.jena.grande.examples;
+package dev;
 
 import java.util.Map;
 
@@ -24,6 +24,7 @@ import junit.framework.Assert;
 
 import org.apache.giraph.examples.SimpleShortestPathsVertex;
 import org.apache.giraph.utils.InternalVertexRunner;
+
 
 public class RunGiraph {
 
