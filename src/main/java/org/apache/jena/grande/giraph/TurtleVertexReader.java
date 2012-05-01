@@ -25,9 +25,11 @@ import org.apache.giraph.graph.BasicVertex;
 import org.apache.giraph.graph.BspUtils;
 import org.apache.giraph.lib.TextVertexInputFormat.TextVertexReader;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.RecordReader;
+import org.apache.jena.grande.NodeEncoder;
 import org.apache.jena.grande.mapreduce.io.NodeWritable;
 import org.openjena.riot.Lang;
 import org.openjena.riot.RiotLoader;
@@ -38,9 +40,10 @@ import com.google.common.collect.Maps;
 import com.hp.hpl.jena.graph.Graph;
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.Triple;
+import com.hp.hpl.jena.sparql.vocabulary.FOAF;
 import com.hp.hpl.jena.util.iterator.ExtendedIterator;
 
-public class TurtleVertexReader extends TextVertexReader<NodeWritable, Text, NodeWritable, Text> {
+public class TurtleVertexReader extends TextVertexReader<NodeWritable, IntWritable, NodeWritable, IntWritable> {
 
 	private static final Logger log = LoggerFactory.getLogger(TurtleVertexWriter.class);
 	
@@ -57,34 +60,30 @@ public class TurtleVertexReader extends TextVertexReader<NodeWritable, Text, Nod
 	}
 
 	@Override
-	public BasicVertex<NodeWritable, Text, NodeWritable, Text> getCurrentVertex() throws IOException, InterruptedException {
+	public BasicVertex<NodeWritable, IntWritable, NodeWritable, IntWritable> getCurrentVertex() throws IOException, InterruptedException {
 		Configuration conf = getContext().getConfiguration();
-		BasicVertex<NodeWritable, Text, NodeWritable, Text> vertex = BspUtils.createVertex(conf);
+		BasicVertex<NodeWritable, IntWritable, NodeWritable, IntWritable> vertex = BspUtils.createVertex(conf);
 		Text line = getRecordReader().getCurrentValue();
+		NodeWritable vertexId = getVertexId(line);
 		Graph graph = RiotLoader.graphFromString(line.toString(), Lang.TURTLE, "");
-		NodeWritable vertexId = getVertexId(graph);
-		Text vertexValue = line;
 		Map<NodeWritable, NodeWritable> edgeMap = getEdgeMap(vertexId, graph);
-		vertex.initialize(vertexId, vertexValue, edgeMap, null);
+		vertex.initialize(vertexId, null, edgeMap, null);
 		log.debug("getCurrentVertex() --> {}", vertex);
 		return vertex;
 	}
 	
-	private NodeWritable getVertexId( Graph graph ) {
-		// TODO: what do we do if we have backlinks?
-		NodeWritable vertexId = null;
-		ExtendedIterator<Triple> iter = graph.find(Node.ANY, Node.ANY, Node.ANY);
-		if ( iter.hasNext() ) {
-			vertexId = new NodeWritable( iter.next().getSubject() );
-		}
-		log.debug("getVertextId() --> {}", vertexId);
+	private NodeWritable getVertexId( Text line ) {
+		String str = line.toString();
+		NodeWritable vertexId = new NodeWritable(NodeEncoder.asNode(str.substring(0, str.indexOf(' '))));
+		log.debug("getVertexId({}) --> {}", line, vertexId);
 		return vertexId;
 	}
 
 	private Map<NodeWritable, NodeWritable> getEdgeMap( NodeWritable vertexId, Graph graph ) {
+		log.debug("getEdgeMap({}, {})", vertexId, graph);
 		Node s = vertexId.getNode();
 		Map<NodeWritable, NodeWritable> edgeMap = Maps.newHashMap();
-		ExtendedIterator<Triple> iter = graph.find(s, Node.ANY, Node.ANY);
+		ExtendedIterator<Triple> iter = graph.find(s, FOAF.knows.asNode(), Node.ANY);
 		while ( iter.hasNext() ) {
 			Triple triple = iter.next();
 			NodeWritable o = new NodeWritable(triple.getObject());

@@ -22,19 +22,19 @@ import java.io.IOException;
 
 import org.apache.giraph.graph.VertexWriter;
 import org.apache.giraph.lib.TextVertexOutputFormat;
-import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.jena.grande.mapreduce.io.NodeWritable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TurtleVertexOutputFormat extends TextVertexOutputFormat<NodeWritable, Text, NodeWritable> {
+public class TurtleVertexOutputFormat extends TextVertexOutputFormat<NodeWritable, IntWritable, NodeWritable> {
 
 	private static final Logger log = LoggerFactory.getLogger(TurtleVertexInputFormat.class);
 	
 	@Override
-	public VertexWriter<NodeWritable, Text, NodeWritable> createVertexWriter(TaskAttemptContext context) throws IOException, InterruptedException {
-		VertexWriter<NodeWritable, Text, NodeWritable> result = new TurtleVertexWriter(textOutputFormat.getRecordWriter(context));
+	public VertexWriter<NodeWritable, IntWritable, NodeWritable> createVertexWriter(TaskAttemptContext context) throws IOException, InterruptedException {
+		VertexWriter<NodeWritable, IntWritable, NodeWritable> result = new TurtleVertexWriter(textOutputFormat.getRecordWriter(context));
 		log.debug("createVertexWriter({}) --> {}", context, result);
 		return result;
 	}

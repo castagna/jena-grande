@@ -22,13 +22,14 @@ import java.io.IOException;
 
 import org.apache.giraph.graph.BasicVertex;
 import org.apache.giraph.lib.TextVertexOutputFormat.TextVertexWriter;
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.jena.grande.mapreduce.io.NodeWritable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TurtleVertexWriter extends TextVertexWriter<NodeWritable, Text, NodeWritable> {
+public class TurtleVertexWriter extends TextVertexWriter<NodeWritable, IntWritable, NodeWritable> {
 
 	private static final Logger log = LoggerFactory.getLogger(TurtleVertexWriter.class);
 	
@@ -38,10 +39,10 @@ public class TurtleVertexWriter extends TextVertexWriter<NodeWritable, Text, Nod
 	}
 
 	@Override
-	public void writeVertex(BasicVertex<NodeWritable, Text, NodeWritable, ?> vertex) throws IOException, InterruptedException {
+	public void writeVertex(BasicVertex<NodeWritable, IntWritable, NodeWritable, ?> vertex) throws IOException, InterruptedException {
 		log.info("write({},{})", new Object[]{vertex.getVertexId(), vertex.getVertexValue()});
 		// TODO: this must be done differently, or not?
-		getRecordWriter().write (vertex.getVertexValue(), null);
+		getRecordWriter().write (null, null);
 	}
 
 }

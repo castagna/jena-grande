@@ -39,12 +39,12 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
-public class FoafShortestPathsVertex  extends EdgeListVertex<NodeWritable, IntWritable, NodeWritable, IntWritable> implements Tool {
+public class FoafShortestPathsVertex extends EdgeListVertex<NodeWritable, IntWritable, NodeWritable, IntWritable> implements Tool {
 
 	private static final Logger log = LoggerFactory.getLogger(FoafShortestPathsVertex.class);
 
 	public static final String SOURCE_URI = "FoafShortestPathsVertex.sourceURI";
-	public static final String SOURCE_URI_DEFAULT = "...";
+	public static final String SOURCE_URI_DEFAULT = "http://example.org/alice";
 	private Configuration conf;
 
 	private boolean isSource() {
@@ -60,7 +60,9 @@ public class FoafShortestPathsVertex  extends EdgeListVertex<NodeWritable, IntWr
 	    }
 	    int minDist = isSource() ? 0 : Integer.MAX_VALUE;
 	    while (msgIterator.hasNext()) {
-	        minDist = Math.min(minDist, msgIterator.next().get());
+	    	IntWritable msg = msgIterator.next();
+	    	log.debug("compute(...) <-- {}", msg);
+	        minDist = Math.min(minDist, msg.get());
 	    }
 	    if ( log.isDebugEnabled() ) {
 	        log.debug("Vertex " + getVertexId() + " got minDist = " + minDist + " vertex value = " + getVertexValue());

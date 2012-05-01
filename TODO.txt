@@ -1,0 +1,6 @@
+TODO
+====
+
+ - An NQuad|NTriples record reader similar to LineRecordReader but which would 
+   assume file is sorted by subject and it would read all statements for the 
+   same subject and return them as Text.

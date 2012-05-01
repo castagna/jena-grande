@@ -22,20 +22,20 @@ import java.io.IOException;
 
 import org.apache.giraph.graph.VertexReader;
 import org.apache.giraph.lib.TextVertexInputFormat;
-import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.jena.grande.mapreduce.io.NodeWritable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TurtleVertexInputFormat extends TextVertexInputFormat<NodeWritable, Text, NodeWritable, Text> {
+public class TurtleVertexInputFormat extends TextVertexInputFormat<NodeWritable, IntWritable, NodeWritable, IntWritable> {
 
 	private static final Logger log = LoggerFactory.getLogger(TurtleVertexInputFormat.class);
 	
 	@Override
-	public VertexReader<NodeWritable, Text, NodeWritable, Text> createVertexReader(InputSplit split, TaskAttemptContext context) throws IOException {
-		VertexReader<NodeWritable, Text, NodeWritable, Text> result = new TurtleVertexReader(textInputFormat.createRecordReader(split, context));
+	public VertexReader<NodeWritable, IntWritable, NodeWritable, IntWritable> createVertexReader(InputSplit split, TaskAttemptContext context) throws IOException {
+		VertexReader<NodeWritable, IntWritable, NodeWritable, IntWritable> result = new TurtleVertexReader(textInputFormat.createRecordReader(split, context));
 		log.debug("createVertexReader({}, {}) --> {}", new Object[]{split, context, result});
 	    return result;
 	}
