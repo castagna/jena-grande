@@ -9,7 +9,7 @@
   <name>Jena Grande</name>
 
   <properties>
-    <hadoop.version>1.0.1</hadoop.version>
+    <hadoop.version>1.0.2</hadoop.version>
     <pig.version>0.9.2</pig.version>
     <hbase.version>0.92.1</hbase.version>
     <giraph.version>0.2-SNAPSHOT</giraph.version>

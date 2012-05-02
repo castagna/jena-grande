@@ -16,41 +16,60 @@
  * limitations under the License.
  */
 
-package org.apache.jena.grande.giraph;
+package org.apache.jena.grande.giraph.sssps;
 
 import java.io.IOException;
 import java.util.Iterator;
 
+import org.apache.giraph.examples.IntIntNullIntTextInputFormat;
 import org.apache.giraph.graph.EdgeListVertex;
 import org.apache.giraph.graph.GiraphJob;
+import org.apache.giraph.lib.IdWithValueTextOutputFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.jena.grande.Constants;
 import org.apache.jena.grande.Utils;
-import org.apache.jena.grande.mapreduce.io.NodeWritable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
-public class FoafShortestPathsVertex extends EdgeListVertex<NodeWritable, IntWritable, NodeWritable, IntWritable> implements Tool {
+public class SingleSourceShortestPaths extends EdgeListVertex<IntWritable, IntWritable, NullWritable, IntWritable> implements Tool {
 
-	private static final Logger log = LoggerFactory.getLogger(FoafShortestPathsVertex.class);
+	private static final Logger log = LoggerFactory.getLogger(SingleSourceShortestPaths.class);
+	
+	public static final String SOURCE_VERTEX = "giraph.example.source";
+	public static final int SOURCE_VERTEX_DEFAULT = 3;
 
-	public static final String SOURCE_URI = "FoafShortestPathsVertex.sourceURI";
-	public static final String SOURCE_URI_DEFAULT = "http://example.org/alice";
-	private Configuration conf;
+	
+	@Override
+	public int run(String[] args) throws Exception {
+		log.debug("run({})", Utils.toString(args));
+		Preconditions.checkArgument(args.length == 4, "run: Must have 4 arguments <input path> <output path> <source vertex> <# of workers>");
 
-	private boolean isSource() {
-		boolean result = getVertexId().getNode().getURI().equals(getContext().getConfiguration().get(SOURCE_URI, SOURCE_URI_DEFAULT));
-		log.debug("isSource() --> {}", result);
-		return result;
+		Configuration configuration = getConf();
+        boolean overrideOutput = configuration.getBoolean(Constants.OPTION_OVERWRITE_OUTPUT, Constants.OPTION_OVERWRITE_OUTPUT_DEFAULT);
+        FileSystem fs = FileSystem.get(new Path(args[1]).toUri(), configuration);
+        if ( overrideOutput ) {
+            fs.delete(new Path(args[1]), true);
+        }
+
+		GiraphJob job = new GiraphJob(getConf(), getClass().getName());
+		job.setVertexClass(getClass());
+		job.setVertexInputFormatClass(IntIntNullIntTextInputFormat.class);
+		job.setVertexOutputFormatClass(IdWithValueTextOutputFormat.class);
+		FileInputFormat.addInputPath(job.getInternalJob(), new Path(args[0]));
+		FileOutputFormat.setOutputPath(job.getInternalJob(), new Path(args[1]));
+		job.getConfiguration().set(SOURCE_VERTEX, args[2]);
+		job.setWorkerConfiguration(Integer.parseInt(args[3]), Integer.parseInt(args[3]), 100.0f);
+		return job.run(true) ? 0 : -1;
 	}
 
 	@Override
@@ -70,7 +89,7 @@ public class FoafShortestPathsVertex extends EdgeListVertex<NodeWritable, IntWri
 	    if (minDist < getVertexValue().get()) {
 	        setVertexValue(new IntWritable(minDist));
 		    log.debug("compute(...)::{}#{}: value = {}", new Object[]{getVertexId(), getSuperstep(), getVertexValue()});
-	        for (NodeWritable targetVertexId : this) {
+	        for (IntWritable targetVertexId : this) {
 	    	    log.debug("compute(...)::{}#{}: {} --[{}]--> {}", new Object[]{getVertexId(), getSuperstep(), getVertexId(), minDist+1, targetVertexId});
 	        	sendMsg(targetVertexId, new IntWritable(minDist + 1));
 	        }
@@ -78,44 +97,15 @@ public class FoafShortestPathsVertex extends EdgeListVertex<NodeWritable, IntWri
 	    voteToHalt();
 	}
 
-	@Override
-	public Configuration getConf() {
-		log.debug("getConf() --> {}", conf);
-		return conf;
-	}
-
-	@Override
-	public void setConf(Configuration conf) {
-		log.debug("setConf({})", conf);
-		this.conf = conf;
-	}
-	
-	@Override
-	public int run(String[] args) throws Exception {
-		log.debug("run({})", Utils.toString(args));
-		Preconditions.checkArgument(args.length == 4, "run: Must have 4 arguments <input path> <output path> <source vertex uri> <# of workers>");
-
-		Configuration configuration = getConf();
-        boolean overrideOutput = configuration.getBoolean(Constants.OPTION_OVERWRITE_OUTPUT, Constants.OPTION_OVERWRITE_OUTPUT_DEFAULT);
-        FileSystem fs = FileSystem.get(new Path(args[1]).toUri(), configuration);
-        if ( overrideOutput ) {
-            fs.delete(new Path(args[1]), true);
-        }
-
-		GiraphJob job = new GiraphJob(getConf(), getClass().getName());
-		job.setVertexClass(getClass());
-		job.setVertexInputFormatClass(TurtleVertexInputFormat.class);
-		job.setVertexOutputFormatClass(TurtleVertexOutputFormat.class);
-		FileInputFormat.addInputPath(job.getInternalJob(), new Path(args[0]));
-		FileOutputFormat.setOutputPath(job.getInternalJob(), new Path(args[1]));
-		job.getConfiguration().set(SOURCE_URI, args[2]);
-		job.setWorkerConfiguration(Integer.parseInt(args[3]), Integer.parseInt(args[3]), 100.0f);
-		return job.run(true) ? 0 : -1;
+	private boolean isSource() {
+		boolean result = getVertexId().get() == getConf().getInt(SOURCE_VERTEX, SOURCE_VERTEX_DEFAULT);
+		log.debug("isSource() --> {}", result);
+		return result;
 	}
 
 	public static void main(String[] args) throws Exception {
 		log.debug("main({})", Utils.toString(args));
-		System.exit(ToolRunner.run(new FoafShortestPathsVertex(), args));
+		System.exit(ToolRunner.run(new SingleSourceShortestPaths(), args));
 	}
 	
 }
