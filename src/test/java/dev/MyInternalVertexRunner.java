@@ -173,7 +173,7 @@ public class MyInternalVertexRunner {
       });
       try {
         job.run(true);
-      } catch ( Exception e ) {
+      } catch ( Throwable e ) {
     	  LOG.debug(e.getMessage(), e);
     	  e.printStackTrace(System.err);
       } finally {
