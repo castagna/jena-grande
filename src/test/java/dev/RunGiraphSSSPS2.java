@@ -20,7 +20,6 @@ package dev;
 
 import java.util.HashMap;
 
-import org.apache.giraph.lib.IdWithValueTextOutputFormat;
 import org.apache.jena.grande.giraph.sssps.SingleSourceShortestPaths2;
 import org.apache.jena.grande.giraph.sssps.TextTextNullTextTextVertexInputFormat;
 
