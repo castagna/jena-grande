@@ -57,11 +57,23 @@ public class TestPageRank extends TestCase {
 			assertEquals ( array1[i], array2[i] );
 		}
 
+		// pagerank values should be a probability distribution, right? Sum should be 1 then.
+		assertEquals ( dump(result1, result2), 1.0, sum(result1), 0.0001 );
+		assertEquals ( dump(result1, result2), 1.0, sum(result2), 0.0001 );
+
 		// check actual pagerank values
 		for ( String key : result1.keySet() ) {
 			assertTrue( result2.containsKey(key) );
 			assertEquals ( dump(result1, result2), result1.get(key), result2.get(key), 0.000001d );
 		}
+	}
+
+	private double sum ( Map<?, Double> result ) {
+		double sum = 0;
+		for ( Object key : result.keySet() ) {
+			sum += result.get(key);
+		}
+		return sum;
 	}
 	
 	private String dump ( Map<?, Double> result1, Map<?, Double> result2 ) throws IOException {
