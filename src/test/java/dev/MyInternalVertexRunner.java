@@ -118,7 +118,7 @@ public class MyInternalVertexRunner {
       job.setVertexClass(vertexClass);
       job.setVertexInputFormatClass(vertexInputFormatClass);
       job.setVertexOutputFormatClass(vertexOutputFormatClass);
-
+      
       if (vertexCombinerClass != null) {
         job.setVertexCombinerClass(vertexCombinerClass);
       }
