@@ -37,6 +37,7 @@ import junit.framework.TestCase;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.jena.grande.giraph.pagerank.RunPageRankVertexLocally;
+import org.apache.jena.grande.giraph.pagerank.RunSimplePageRankVertexLocally;
 
 public class TestPageRank extends TestCase {
 
@@ -61,6 +62,16 @@ public class TestPageRank extends TestCase {
 		Map<String, Double> result1 = pagerank1.compute();
 
 		Map<String, Double> result2 = RunPageRankVertexLocally.run(filename);
+
+		check ( result1, result2 );
+	}
+
+	public void testSimplePageRankVertex() throws Exception {
+		File input = new File (filename);
+		JungPageRank pagerank1 = new JungPageRank(input, 30, 0.0000001d, 0.15d);
+		Map<String, Double> result1 = pagerank1.compute();
+
+		Map<String, Double> result2 = RunSimplePageRankVertexLocally.run(filename);
 
 		check ( result1, result2 );
 	}

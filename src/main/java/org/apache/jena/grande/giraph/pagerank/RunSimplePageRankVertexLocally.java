@@ -18,26 +18,19 @@
 
 package org.apache.jena.grande.giraph.pagerank;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.giraph.graph.GiraphJob;
-
 import dev.MyInternalVertexRunner;
 
-public class RunPageRankVertexLocally {
+public class RunSimplePageRankVertexLocally {
 
 	public static Map<String, Double> run ( String filename ) throws Exception {		
 		Map<String,String> params = new HashMap<String,String>();
-		params.put(GiraphJob.WORKER_CONTEXT_CLASS, "org.apache.jena.grande.giraph.pagerank.PageRankVertexWorkerContext");
 
-		String[] data = getData ( filename );
+		String[] data = RunPageRankVertexLocally.getData ( filename );
 	    Iterable<String> results = MyInternalVertexRunner.run(
-	    	PageRankVertex.class,
+	    	SimplePageRankVertex.class,
 	        PageRankVertexInputFormat.class,
 	        PageRankVertexOutputFormat.class,
 	        params,
@@ -62,16 +55,6 @@ public class RunPageRankVertexLocally {
 		}
 
 	    System.exit(0);
-	}
-	
-	static String[] getData( String filename ) throws IOException {
-		BufferedReader in = new BufferedReader(new FileReader(filename));
-		String line = null;
-		ArrayList<String> data = new ArrayList<String>();
-		while ( ( line = in.readLine() ) != null ) {
-			data.add(line);
-		}
-		return data.toArray(new String[]{});
 	}
 	
 }
