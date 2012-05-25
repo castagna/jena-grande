@@ -21,25 +21,25 @@ import java.util.Hashtable;
 
 public class Graph {
 
-	private HashSet<Node> nodes = new HashSet<Node>() ;
-	private Hashtable<Node, HashSet<Node>> outgoing_links = new Hashtable<Node, HashSet<Node>>();
-	private Hashtable<Node, HashSet<Node>> incoming_links = new Hashtable<Node, HashSet<Node>>();
+	private HashSet<String> nodes = new HashSet<String>() ;
+	private Hashtable<String, HashSet<String>> outgoing_links = new Hashtable<String, HashSet<String>>();
+	private Hashtable<String, HashSet<String>> incoming_links = new Hashtable<String, HashSet<String>>();
 	private int count_links = 0 ;
 	
-	public boolean addNode ( Node node ) {
+	public boolean addNode ( String node ) {
 		if ( nodes.contains(node) ) return false ;
 		
 		nodes.add(node) ;
 		if ( !outgoing_links.containsKey ( node ) ) {
-			outgoing_links.put ( node, new HashSet<Node>() ) ;
+			outgoing_links.put ( node, new HashSet<String>() ) ;
 		}
 		if ( !incoming_links.containsKey ( node ) ) {
-			incoming_links.put ( node, new HashSet<Node>() ) ;
+			incoming_links.put ( node, new HashSet<String>() ) ;
 		}
 		return true ;
 	}
 	
-	public boolean addLink ( Node source, Node destination ) {
+	public boolean addLink ( String source, String destination ) {
 		if ( source.equals( destination ) ) return false ;
 
 		addNode ( source ) ;
@@ -64,15 +64,15 @@ public class Graph {
 		return count_links ;
 	}
 	
-	public int countOutgoingLinks(Node node) {
+	public int countOutgoingLinks(String node) {
 		return outgoing_links.get(node).size() ;
 	}
 
-	public HashSet<Node> getIncomingLinks(Node node) {
+	public HashSet<String> getIncomingLinks(String node) {
 		return incoming_links.get(node) ;
 	}
 	
-	public HashSet<Node> getNodes() {
+	public HashSet<String> getNodes() {
 		return nodes ;
 	}
 	

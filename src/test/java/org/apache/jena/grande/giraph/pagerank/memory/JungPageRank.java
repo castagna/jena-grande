@@ -102,7 +102,7 @@ public class JungPageRank {
 		LOG.debug(String.format("Loaded %d nodes and %d links in %d ms", graph.getVertexCount(), graph.getEdgeCount(), (System.currentTimeMillis()-start)));
 	}
 	
-	public Map<Node, Double> compute() throws IOException {
+	public Map<String, Double> compute() throws IOException {
 		MemoryUtil.printUsedMemory() ;
 		
 		DirectedSparseGraph<String, Integer> graph = new DirectedSparseGraph<String, Integer>();
@@ -125,9 +125,9 @@ public class JungPageRank {
 
 		MemoryUtil.printUsedMemory() ;
 				
-		Map<Node, Double> result = new HashMap<Node, Double>();
+		Map<String, Double> result = new HashMap<String, Double>();
 		for (String v : graph.getVertices()) {
-			result.put(new Node(v), ranker.getVertexScore(v));
+			result.put(v, ranker.getVertexScore(v));
 		}
 		return result;
 	}

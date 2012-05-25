@@ -18,6 +18,10 @@
 
 package org.apache.jena.grande.giraph.pagerank;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,20 +31,11 @@ import dev.MyInternalVertexRunner;
 
 public class RunPageRankVertexLocally {
 
-	public static final String[] data = new String[] {
-		"1	1	2	2",
-		"2	3	5	7	9	11",
-		"3	3	3	6",
-		"4",
-		"5	1	2	3	11",
-		"8	10",
-		"10	5",
-	};
-	
-	public static void main(String[] args) throws Exception {
+	public static Map<String, Double> run ( String filename ) throws Exception {		
 		Map<String,String> params = new HashMap<String,String>();
 		params.put(GiraphJob.WORKER_CONTEXT_CLASS, "org.apache.jena.grande.giraph.pagerank.PageRankVertexWorkerContext");
-		
+
+		String[] data = getData ( filename );
 	    Iterable<String> results = MyInternalVertexRunner.run(
 	    	PageRankVertex.class,
 	        PageRankVertexInputFormat.class,
@@ -48,12 +43,35 @@ public class RunPageRankVertexLocally {
 	        params,
 	        data
 	    );
-	    
-	    for (String result : results) {
-			System.out.println(result);
+
+		Map<String,Double> pageranks = new HashMap<String,Double>();
+	    for ( String result : results ) {
+	    	String[] tokens = result.split("[\t ]");
+	    	if ( tokens.length == 2 ) {
+	    		pageranks.put(tokens[0], Double.valueOf(tokens[1]));
+	    	}
+		}		
+		return pageranks;
+	}
+	
+	public static void main(String[] args) throws Exception {
+		Map<String, Double> pageranks = run ( "src/test/resources/pagerank.txt" );
+
+		for ( String vertex : pageranks.keySet() ) {
+			System.out.println ( vertex + "\t" + pageranks.get(vertex) );
 		}
 
 	    System.exit(0);
+	}
+	
+	private static String[] getData( String filename ) throws IOException {
+		BufferedReader in = new BufferedReader(new FileReader(filename));
+		String line = null;
+		ArrayList<String> data = new ArrayList<String>();
+		while ( ( line = in.readLine() ) != null ) {
+			data.add(line);
+		}
+		return data.toArray(new String[]{});
 	}
 	
 }

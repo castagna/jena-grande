@@ -16,8 +16,8 @@ public class PlainPageRank {
 	private static final Logger LOG = LoggerFactory.getLogger(PlainPageRank.class);
 	
 	private Graph graph = new Graph() ;
-	private Map<Node, Double> pagerank_current = new HashMap<Node, Double>() ; 
-	private Map<Node, Double> pagerank_new = new HashMap<Node, Double>() ; 
+	private Map<String, Double> pagerank_current = new HashMap<String, Double>() ; 
+	private Map<String, Double> pagerank_new = new HashMap<String, Double>() ; 
 	
 	private double dumping_factor ;
 	private int iterations ;
@@ -37,27 +37,27 @@ public class PlainPageRank {
 		}
 	}
 	
-	public Map<Node, Double> compute() {
+	public Map<String, Double> compute() {
 		double teleport = ( 1.0d - dumping_factor ) / graph.countNodes() ;
 		for (int i = 0; i < iterations; i++) {
 			LOG.debug("iteration " + i);
 			double dangling_nodes = 0.0d ;
-			for ( Node node : graph.getNodes() ) {
+			for ( String node : graph.getNodes() ) {
 				if ( graph.countOutgoingLinks(node) == 0 ) {
 					dangling_nodes += pagerank_current.get ( node ) ;
 				}
 			}
 			dangling_nodes = ( dumping_factor * dangling_nodes ) / graph.countNodes() ;
 			
-			for ( Node node : graph.getNodes() ) {
+			for ( String node : graph.getNodes() ) {
 				double r = 0.0d ; 
-				for ( Node source : graph.getIncomingLinks(node) ) {
+				for ( String source : graph.getIncomingLinks(node) ) {
 					r += pagerank_current.get ( source ) / graph.countOutgoingLinks ( source ) ; 						
 				}
 				r = dumping_factor * r + dangling_nodes + teleport ;	
 				pagerank_new.put ( node, r ) ;
 			}
-			for ( Node node : graph.getNodes() ) {
+			for ( String node : graph.getNodes() ) {
 				pagerank_current.put ( node, pagerank_new.get ( node ) ) ;
 			}
 		}
@@ -67,7 +67,7 @@ public class PlainPageRank {
 	
 	private void initialize_pagerank() {
 		Double initial_pagerank = ( 1.0d / graph.countNodes() ) ; 
-		for ( Node node : graph.getNodes() ) {
+		for ( String node : graph.getNodes() ) {
 			pagerank_current.put ( node, initial_pagerank ) ;
 		}
 	}
@@ -78,13 +78,13 @@ public class PlainPageRank {
 		String line;
 		while ((line = in.readLine()) != null) {
 			StringTokenizer st = new StringTokenizer(line) ;
-			Node source = new Node(st.nextToken());
+			String source = st.nextToken();
 			graph.addNode( source ) ;
 			HashSet<String> seen = new HashSet<String>();
 			while (st.hasMoreTokens()) {
 				String token = st.nextToken() ;
 				if ( !seen.contains(token) ) { // no multiple links to the same page
-					Node destination = new Node(token) ;
+					String destination = token ;
 					if ( destination != source ) { // no self-links
 						graph.addNode ( destination ) ;
 						graph.addLink ( source, destination ) ;					
