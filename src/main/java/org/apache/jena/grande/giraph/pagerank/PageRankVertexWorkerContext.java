@@ -48,13 +48,16 @@ public class PageRankVertexWorkerContext extends WorkerContext {
 	@Override
 	public void preSuperstep() {
 		log.debug("preSuperstep()");
+		if ( getSuperstep() % 2 == 0 ) {
+			((Aggregator<DoubleWritable>)getAggregator("dangling")).setAggregatedValue(new DoubleWritable(0L));
+			log.debug("preSuperstep() danglingAggregators={}", getAggregator("dangling").getAggregatedValue());
+		}
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public void postSuperstep() {
 		log.debug("postSuperstep()");
-		((Aggregator<DoubleWritable>)getAggregator("dangling")).setAggregatedValue(new DoubleWritable(0L));
 	}
 
 }

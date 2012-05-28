@@ -45,6 +45,8 @@ public class PageRankVertex extends EdgeListVertex<Text, DoubleWritable, NullWri
 		Aggregator<LongWritable> countVerticesAggegator = (Aggregator<LongWritable>)getAggregator("count");
 		long numVertices = countVerticesAggegator.getAggregatedValue().get();
 		
+		double danglingNodesContribution = danglingAggegator.getAggregatedValue().get();
+		
 		if ( getSuperstep() == 0 ) {
 			log.debug("{}#{} - compute(...): {}", new Object[]{getVertexId(), getSuperstep(), "sending fake messages, just to count vertices including dangling ones"});
 			sendMsgToAllEdges ( new DoubleWritable() );
@@ -59,33 +61,39 @@ public class PageRankVertex extends EdgeListVertex<Text, DoubleWritable, NullWri
 			log.debug("{}#{} - compute(...) vertexValue={}", new Object[]{getVertexId(), getSuperstep(), getVertexValue()});
 			send( danglingAggegator, pagerankAggegator );
 		} else if ( getSuperstep() > 2 ) {
-			log.debug("{}#{} - compute(...): numVertices={}", new Object[]{getVertexId(), getSuperstep(), numVertices});
-			double sum = 0;
-			while (msgIterator.hasNext()) {
-				double msgValue = msgIterator.next().get(); 
-				log.debug("{}#{} - compute(...) <-- {}", new Object[]{getVertexId(), getSuperstep(), msgValue});				
-				sum += msgValue;
+			if ( getSuperstep() % 2 == 1 ) {
+				log.debug("{}#{} - compute(...): numVertices={}", new Object[]{getVertexId(), getSuperstep(), numVertices});
+				double sum = 0;
+				while (msgIterator.hasNext()) {
+					double msgValue = msgIterator.next().get(); 
+					log.debug("{}#{} - compute(...) <-- {}", new Object[]{getVertexId(), getSuperstep(), msgValue});				
+					sum += msgValue;
+				}
+				log.debug("{}#{} - compute(...) danglingNodesContribution={}", new Object[]{getVertexId(), getSuperstep(), danglingNodesContribution });
+				DoubleWritable vertexValue = new DoubleWritable( ( 0.15f / numVertices ) + 0.85f * ( sum + danglingNodesContribution / numVertices ) );
+//				DoubleWritable vertexValue = new DoubleWritable( ( 0.15f / numVertices ) + 0.85f * sum );
+				setVertexValue(vertexValue);
+				log.debug("{}#{} - compute(...) vertexValue={}", new Object[]{getVertexId(), getSuperstep(), getVertexValue()});
 			}
-			log.debug("{}#{} - compute(...) danglingNodesContribution={}", new Object[]{getVertexId(), getSuperstep(), getVertexValue(), danglingAggegator.getAggregatedValue().get()});
-			DoubleWritable vertexValue = new DoubleWritable( ( 0.15f / numVertices ) + 0.85f * ( sum + danglingAggegator.getAggregatedValue().get() / numVertices ) );
-//			DoubleWritable vertexValue = new DoubleWritable( ( 0.15f / numVertices ) + 0.85f * sum );
-			setVertexValue(vertexValue);
-			log.debug("{}#{} - compute(...) vertexValue={}", new Object[]{getVertexId(), getSuperstep(), getVertexValue()});
-			send( danglingAggegator, pagerankAggegator );
+			send( danglingAggegator, pagerankAggegator );				
 		}
 	}
 	
 	private void send( Aggregator<DoubleWritable> danglingAggegator, Aggregator<DoubleWritable> pagerankAggegator ) {
 		if ( getSuperstep() < NUM_ITERATIONS ) {
 			long edges = getNumOutEdges();
-			log.debug("{}#{} - compute(...) numOutEdges={}", new Object[]{getVertexId(), getSuperstep(), edges});
-			if ( edges > 0 ) {
+			if ( edges > 0 )  {
+				log.debug("{}#{} - send(...) numOutEdges={} propagating pagerank values...", new Object[]{getVertexId(), getSuperstep(), edges});
 				sendMsgToAllEdges ( new DoubleWritable(getVertexValue().get() / edges) );
-			} else {
+			}
+			if ( ( edges == 0 ) && ( getSuperstep() % 2 == 0) ) {
+				log.debug("{}#{} - send(...) numOutEdges={} updating dangling node contribution...", new Object[]{getVertexId(), getSuperstep(), edges});
+				log.debug("{}#{} - send(...) danglingAggregator={}", new Object[]{getVertexId(), getSuperstep(), danglingAggegator.getAggregatedValue().get()});
 				danglingAggegator.aggregate( getVertexValue() );
+				log.debug("{}#{} - send(...) danglingAggregator={}", new Object[]{getVertexId(), getSuperstep(), danglingAggegator.getAggregatedValue().get()});
 			}
 		} else {
-			pagerankAggegator.aggregate(getVertexValue());
+			pagerankAggegator.aggregate ( getVertexValue() );
 			voteToHalt();
 			log.debug("{}#{} - compute(...) --> halt", new Object[]{getVertexId(), getSuperstep()});
 		}
