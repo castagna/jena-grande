@@ -40,21 +40,18 @@ public class PageRankVertex extends EdgeListVertex<Text, DoubleWritable, NullWri
 	private double tolerance;
 	private Aggregator<?> danglingCurrentAggegator;
 	private Aggregator<?> pagerankSumAggegator;
-	private Aggregator<?> errorPreviousAggegator;
 
 	@Override
 	public void compute(Iterator<DoubleWritable> msgIterator) {
 		log.debug("{}#{} compute() vertexValue={}", new Object[]{getVertexId(), getSuperstep(), getVertexValue()});
 
 		danglingCurrentAggegator = getAggregator("dangling-current");
-		@SuppressWarnings("unchecked") Aggregator<DoubleWritable> danglingPreviousAggegator = (Aggregator<DoubleWritable>)getAggregator("dangling-previous");
 		@SuppressWarnings("unchecked") Aggregator<DoubleWritable> errorCurrentAggegator = (Aggregator<DoubleWritable>)getAggregator("error-current");
-		errorPreviousAggegator = getAggregator("error-previous");
 		pagerankSumAggegator = getAggregator("pagerank-sum");
 		@SuppressWarnings("unchecked") Aggregator<LongWritable> verticesCountAggregator = (Aggregator<LongWritable>)getAggregator("vertices-count");
 
 		long numVertices = verticesCountAggregator.getAggregatedValue().get();
-		double danglingNodesContribution = danglingPreviousAggegator.getAggregatedValue().get();
+		double danglingNodesContribution = PageRankVertexWorkerContext.danglingPrevious;
 		numIterations = getConf().getInt("giraph.pagerank.iterations", DEFAULT_NUM_ITERATIONS);
 		tolerance = getConf().getFloat("giraph.pagerank.tolerance", DEFAULT_TOLERANCE);
 		
@@ -87,8 +84,7 @@ public class PageRankVertex extends EdgeListVertex<Text, DoubleWritable, NullWri
 
 	@SuppressWarnings("unchecked")
 	private void sendMessages() {
-		double error = ((Aggregator<DoubleWritable>)errorPreviousAggegator).getAggregatedValue().get();
-		if ( ( getSuperstep() - 3 < numIterations ) && ( error > tolerance ) ) {
+		if ( ( getSuperstep() - 3 < numIterations ) && ( PageRankVertexWorkerContext.errorPrevious > tolerance ) ) {
 			long edges = getNumOutEdges();
 			if ( edges > 0 )  {
 				sendMsgToAllEdges ( new DoubleWritable(getVertexValue().get() / edges) );

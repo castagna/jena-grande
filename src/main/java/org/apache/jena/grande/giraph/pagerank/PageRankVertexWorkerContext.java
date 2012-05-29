@@ -30,18 +30,18 @@ public class PageRankVertexWorkerContext extends WorkerContext {
 
 	private static final Logger log = LoggerFactory.getLogger(PageRankVertexWorkerContext.class);
 
+	public static double errorPrevious = Double.MAX_VALUE;
+	public static double danglingPrevious = 0d;
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	public void preApplication() throws InstantiationException, IllegalAccessException {
 		log.debug("preApplication()");
 		registerAggregator("dangling-current", SumAggregator.class);
-		registerAggregator("dangling-previous", SumAggregator.class);
 		registerAggregator("error-current", SumAggregator.class);
-		registerAggregator("error-previous", SumAggregator.class);
 		registerAggregator("pagerank-sum", SumAggregator.class);
 		registerAggregator("vertices-count", LongSumAggregator.class);
 
-		((Aggregator<DoubleWritable>)getAggregator("error-previous")).setAggregatedValue( new DoubleWritable( Double.MAX_VALUE ) );
 		((Aggregator<DoubleWritable>)getAggregator("error-current")).setAggregatedValue( new DoubleWritable( Double.MAX_VALUE ) );
 	}
 
@@ -56,10 +56,10 @@ public class PageRankVertexWorkerContext extends WorkerContext {
 	public void preSuperstep() {
 		log.debug("preSuperstep()");
 		if ( getSuperstep() > 2 ) {
-			((Aggregator<DoubleWritable>)getAggregator("error-previous")).setAggregatedValue( new DoubleWritable(((Aggregator<DoubleWritable>)getAggregator("error-current")).getAggregatedValue().get()) );
+			errorPrevious = ((Aggregator<DoubleWritable>)getAggregator("error-current")).getAggregatedValue().get();
 			((Aggregator<DoubleWritable>)getAggregator("error-current")).setAggregatedValue( new DoubleWritable(0L) );
 		}
-		((Aggregator<DoubleWritable>)getAggregator("dangling-previous")).setAggregatedValue( new DoubleWritable(((Aggregator<DoubleWritable>)getAggregator("dangling-current")).getAggregatedValue().get()) );
+		danglingPrevious = ((Aggregator<DoubleWritable>)getAggregator("dangling-current")).getAggregatedValue().get();
 		((Aggregator<DoubleWritable>)getAggregator("dangling-current")).setAggregatedValue( new DoubleWritable(0L) );
 	}
 
