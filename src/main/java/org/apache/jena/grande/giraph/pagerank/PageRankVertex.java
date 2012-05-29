@@ -38,10 +38,18 @@ public class PageRankVertex extends EdgeListVertex<Text, DoubleWritable, NullWri
 	public void compute(Iterator<DoubleWritable> msgIterator) {
 		log.debug("{}#{} - compute(...) vertexValue={}", new Object[]{getVertexId(), getSuperstep(), getVertexValue()});
 
+		@SuppressWarnings("unchecked")
 		Aggregator<DoubleWritable> danglingAggegator = (Aggregator<DoubleWritable>)getAggregator("dangling");
+		@SuppressWarnings("unchecked")
 		Aggregator<DoubleWritable> pagerankAggegator = (Aggregator<DoubleWritable>)getAggregator("pagerank");
-		Aggregator<?> errorAggegator = (Aggregator<DoubleWritable>)getAggregator("error");
+		@SuppressWarnings("unchecked")
+		Aggregator<DoubleWritable> errorCurrentAggegator = (Aggregator<DoubleWritable>)getAggregator("error-current");
+		@SuppressWarnings("unchecked")
+		Aggregator<DoubleWritable> errorPreviousAggegator = (Aggregator<DoubleWritable>)getAggregator("error-previous");
+		log.debug("{}#{} - compute(...) errorCurrentAggregator={}", new Object[]{getVertexId(), getSuperstep(), errorCurrentAggegator.getAggregatedValue() });
+		log.debug("{}#{} - compute(...) errorPreviousAggregator={}", new Object[]{getVertexId(), getSuperstep(), errorPreviousAggegator.getAggregatedValue() });
 
+		@SuppressWarnings("unchecked")
 		Aggregator<LongWritable> countVerticesAggegator = (Aggregator<LongWritable>)getAggregator("count");
 		long numVertices = countVerticesAggegator.getAggregatedValue().get();
 		
@@ -71,7 +79,7 @@ public class PageRankVertex extends EdgeListVertex<Text, DoubleWritable, NullWri
 				}
 				log.debug("{}#{} - compute(...) danglingNodesContribution={}", new Object[]{getVertexId(), getSuperstep(), danglingNodesContribution });
 				DoubleWritable vertexValue = new DoubleWritable( ( 0.15f / numVertices ) + 0.85f * ( sum + danglingNodesContribution / numVertices ) );
-//				DoubleWritable vertexValue = new DoubleWritable( ( 0.15f / numVertices ) + 0.85f * sum );
+				errorCurrentAggegator.aggregate( new DoubleWritable(Math.abs(vertexValue.get() - getVertexValue().get())) );
 				setVertexValue(vertexValue);
 				log.debug("{}#{} - compute(...) vertexValue={}", new Object[]{getVertexId(), getSuperstep(), getVertexValue()});
 			}
