@@ -30,39 +30,42 @@ public class PageRankVertexWorkerContext extends WorkerContext {
 
 	private static final Logger log = LoggerFactory.getLogger(PageRankVertexWorkerContext.class);
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void preApplication() throws InstantiationException, IllegalAccessException {
 		log.debug("preApplication()");
-		registerAggregator("dangling", SumAggregator.class);
-		registerAggregator("pagerank", SumAggregator.class);
+		registerAggregator("dangling-current", SumAggregator.class);
+		registerAggregator("dangling-previous", SumAggregator.class);
 		registerAggregator("error-current", SumAggregator.class);
 		registerAggregator("error-previous", SumAggregator.class);
-		registerAggregator("count", LongSumAggregator.class);
+		registerAggregator("pagerank-sum", SumAggregator.class);
+		registerAggregator("vertices-count", LongSumAggregator.class);
+
+		((Aggregator<DoubleWritable>)getAggregator("error-previous")).setAggregatedValue( new DoubleWritable( Double.MAX_VALUE ) );
+		((Aggregator<DoubleWritable>)getAggregator("error-current")).setAggregatedValue( new DoubleWritable( Double.MAX_VALUE ) );
 	}
 
 	@Override
 	public void postApplication() {
 		log.debug("postApplication()");
-		log.debug("postApplication() pagerank={}", getAggregator("pagerank").getAggregatedValue());
+		log.debug("postApplication() pagerank-sum={}", getAggregator("pagerank-sum").getAggregatedValue());
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Override
 	public void preSuperstep() {
 		log.debug("preSuperstep()");
-		((Aggregator<DoubleWritable>)getAggregator("error-previous")).setAggregatedValue( new DoubleWritable(((Aggregator<DoubleWritable>)getAggregator("error-current")).getAggregatedValue().get()) );
-		((Aggregator<DoubleWritable>)getAggregator("error-current")).setAggregatedValue(new DoubleWritable(0L));
-		if ( getSuperstep() % 2 == 0 ) {
-			((Aggregator<DoubleWritable>)getAggregator("dangling")).setAggregatedValue(new DoubleWritable(0L));
-			log.debug("preSuperstep() danglingAggregators={}", getAggregator("dangling").getAggregatedValue());
+		if ( getSuperstep() > 2 ) {
+			((Aggregator<DoubleWritable>)getAggregator("error-previous")).setAggregatedValue( new DoubleWritable(((Aggregator<DoubleWritable>)getAggregator("error-current")).getAggregatedValue().get()) );
+			((Aggregator<DoubleWritable>)getAggregator("error-current")).setAggregatedValue( new DoubleWritable(0L) );
 		}
+		((Aggregator<DoubleWritable>)getAggregator("dangling-previous")).setAggregatedValue( new DoubleWritable(((Aggregator<DoubleWritable>)getAggregator("dangling-current")).getAggregatedValue().get()) );
+		((Aggregator<DoubleWritable>)getAggregator("dangling-current")).setAggregatedValue( new DoubleWritable(0L) );
 	}
 
 	@Override
 	public void postSuperstep() {
 		log.debug("postSuperstep()");
-		log.debug("postSuperstep() error-previous={}", getAggregator("error-previous").getAggregatedValue());
-		log.debug("postSuperstep() error-current={}", getAggregator("error-current").getAggregatedValue());
 	}
 
 }

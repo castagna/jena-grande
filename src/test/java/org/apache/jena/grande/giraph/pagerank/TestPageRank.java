@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.jena.grande.giraph.pagerank.memory;
+package org.apache.jena.grande.giraph.pagerank;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -38,27 +38,32 @@ import junit.framework.TestCase;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.jena.grande.giraph.pagerank.RunPageRankVertexLocally;
 import org.apache.jena.grande.giraph.pagerank.RunSimplePageRankVertexLocally;
+import org.apache.jena.grande.giraph.pagerank.memory.JungPageRank;
+import org.apache.jena.grande.giraph.pagerank.memory.PlainPageRank;
 
 public class TestPageRank extends TestCase {
 
 	private static final String filename = "src/test/resources/pagerank.txt"; 
+	private static final double dumping_factor = ( 0.85d );
+	private static final double alpha = ( 1.0d - dumping_factor );
+	private static final int iterations = 30;
+	private static final double tolerance = 0.0000001d;
 	
 	public void testPlainPageRank() throws IOException {
 		File input = new File (filename);
 		BufferedReader in = new BufferedReader(new FileReader (input)) ;
 
-		PlainPageRank pagerank1 = new PlainPageRank (in, 0.85d, 30) ;
+		PlainPageRank pagerank1 = new PlainPageRank ( in, dumping_factor, iterations ) ;
 		Map<String, Double> result1 = pagerank1.compute() ;
 		
-		JungPageRank pagerank2 = new JungPageRank(input, 30, 0.0000001d, 0.15d);
+		JungPageRank pagerank2 = new JungPageRank ( input, iterations, tolerance, alpha );
 		Map<String, Double> result2 = pagerank2.compute();
 
 		check ( result1, result2 );
 	}
 
 	public void testPageRankVertex() throws Exception {
-		File input = new File (filename);
-		JungPageRank pagerank1 = new JungPageRank(input, 30, 0.0000001d, 0.15d);
+		JungPageRank pagerank1 = new JungPageRank ( new File (filename), iterations, tolerance, alpha );
 		Map<String, Double> result1 = pagerank1.compute();
 
 		Map<String, Double> result2 = RunPageRankVertexLocally.run(filename);
@@ -67,8 +72,7 @@ public class TestPageRank extends TestCase {
 	}
 
 	public void testSimplePageRankVertex() throws Exception {
-		File input = new File (filename);
-		JungPageRank pagerank1 = new JungPageRank(input, 30, 0.0000001d, 0.15d);
+		JungPageRank pagerank1 = new JungPageRank ( new File (filename), iterations, tolerance, alpha );
 		Map<String, Double> result1 = pagerank1.compute();
 
 		Map<String, Double> result2 = RunSimplePageRankVertexLocally.run(filename);
@@ -87,13 +91,13 @@ public class TestPageRank extends TestCase {
 		}
 
 		// pagerank values should be a probability distribution, right? Sum should be 1 then.
-		assertEquals ( dump(result1, result2), 1.0, sum(result1), 0.0001 );
-		assertEquals ( dump(result1, result2), 1.0, sum(result2), 0.0001 );
+		assertEquals ( dump(result1, result2), 1.0, sum(result1), 0.00001 );
+		assertEquals ( dump(result1, result2), 1.0, sum(result2), 0.00001 );
 
 		// check actual pagerank values
 		for ( String key : result1.keySet() ) {
 			assertTrue( result2.containsKey(key) );
-			assertEquals ( dump(result1, result2), result1.get(key), result2.get(key), 0.000001d );
+			assertEquals ( dump(result1, result2), result1.get(key), result2.get(key), 0.00001d );
 		}
 	}
 
