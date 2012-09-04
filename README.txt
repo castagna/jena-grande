@@ -25,3 +25,6 @@
   Have fun!
   
   -- Paolo
+
+
+svn co https://svn.apache.org/repos/asf/giraph/trunk/ apache-giraph
