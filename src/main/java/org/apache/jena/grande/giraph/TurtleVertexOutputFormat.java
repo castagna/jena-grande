@@ -21,7 +21,7 @@ package org.apache.jena.grande.giraph;
 import java.io.IOException;
 
 import org.apache.giraph.graph.VertexWriter;
-import org.apache.giraph.lib.TextVertexOutputFormat;
+import org.apache.giraph.io.TextVertexOutputFormat;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.jena.grande.mapreduce.io.NodeWritable;

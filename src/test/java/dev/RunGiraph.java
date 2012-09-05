@@ -23,16 +23,17 @@ import java.util.Map;
 import junit.framework.Assert;
 
 import org.apache.giraph.examples.SimpleShortestPathsVertex;
+import org.apache.giraph.io.JsonLongDoubleFloatDoubleVertexInputFormat;
+import org.apache.giraph.io.JsonLongDoubleFloatDoubleVertexOutputFormat;
 import org.apache.giraph.utils.InternalVertexRunner;
-
 
 public class RunGiraph {
 
 	public static void main(String[] args) throws Exception {
 	    Iterable<String> results = InternalVertexRunner.run(
 	    	SimpleShortestPathsVertex.class,
-	        SimpleShortestPathsVertex.SimpleShortestPathsVertexInputFormat.class,
-	        SimpleShortestPathsVertex.SimpleShortestPathsVertexOutputFormat.class,
+	    	JsonLongDoubleFloatDoubleVertexInputFormat.class,
+	    	JsonLongDoubleFloatDoubleVertexOutputFormat.class,
 	        RunGiraphTest.params, 
 	        RunGiraphTest.graph
 	    );

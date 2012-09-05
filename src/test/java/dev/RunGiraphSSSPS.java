@@ -20,8 +20,8 @@ package dev;
 
 import java.util.HashMap;
 
-import org.apache.giraph.examples.IntIntNullIntTextInputFormat;
-import org.apache.giraph.lib.IdWithValueTextOutputFormat;
+import org.apache.giraph.io.IntIntNullIntTextInputFormat;
+import org.apache.giraph.io.IdWithValueTextOutputFormat;
 import org.apache.jena.grande.giraph.sssps.SingleSourceShortestPaths;
 
 public class RunGiraphSSSPS {

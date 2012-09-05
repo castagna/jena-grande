@@ -20,8 +20,8 @@ package org.apache.jena.grande.giraph.pagerank;
 
 import java.io.IOException;
 
-import org.apache.giraph.graph.BasicVertex;
-import org.apache.giraph.lib.TextVertexOutputFormat.TextVertexWriter;
+import org.apache.giraph.graph.Vertex;
+import org.apache.giraph.io.TextVertexOutputFormat.TextVertexWriter;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
@@ -34,8 +34,8 @@ public class PageRankVertexWriter extends TextVertexWriter<Text, DoubleWritable,
 	}
 
 	@Override
-	public void writeVertex ( BasicVertex<Text, DoubleWritable, NullWritable, ?> vertex ) throws IOException, InterruptedException {
-		getRecordWriter().write ( vertex.getVertexId(), new Text(vertex.getVertexValue().toString()) );
+	public void writeVertex ( Vertex<Text, DoubleWritable, NullWritable, ?> vertex ) throws IOException, InterruptedException {
+		getRecordWriter().write ( vertex.getId(), new Text(vertex.getValue().toString()) );
 	}
 
 }

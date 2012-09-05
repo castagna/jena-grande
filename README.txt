@@ -22,9 +22,22 @@
   If the graph you need to process isn't RDF, some of the tricks shared
   here might be useful to you for other type of graphs.
 
+
+  Requirements
+  ------------
+
+  This is how to get Apache Giraph and install it in your Maven local repo:
+
+    svn co https://svn.apache.org/repos/asf/giraph/trunk/ apache-giraph
+    cd apache-giraph
+    mvn -P hadoop_1.0 install
+
+  ...
+
+
   Have fun!
   
   -- Paolo
 
 
-svn co https://svn.apache.org/repos/asf/giraph/trunk/ apache-giraph
+

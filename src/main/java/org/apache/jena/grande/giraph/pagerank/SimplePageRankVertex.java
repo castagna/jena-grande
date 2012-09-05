@@ -18,8 +18,6 @@
 
 package org.apache.jena.grande.giraph.pagerank;
 
-import java.util.Iterator;
-
 import org.apache.giraph.graph.EdgeListVertex;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.NullWritable;
@@ -33,21 +31,21 @@ public class SimplePageRankVertex extends EdgeListVertex<Text, DoubleWritable, N
 	public static final int NUM_ITERATIONS = 30;
 
 	@Override
-	public void compute(Iterator<DoubleWritable> msgIterator) {
-		log.debug("{}#{} - compute(...) vertexValue={}", new Object[] { getVertexId(), getSuperstep(), getVertexValue() });
+	public void compute(Iterable<DoubleWritable> msgIterator) {
+		log.debug("{}#{} - compute(...) vertexValue={}", new Object[] { getId(), getSuperstep(), getValue() });
 
 		if (getSuperstep() >= 1) {
 			double sum = 0;
-			while (msgIterator.hasNext()) {
-				sum += msgIterator.next().get();
+			for ( DoubleWritable msg : msgIterator ) {
+				sum += msg.get();
 			}
-			DoubleWritable vertexValue = new DoubleWritable( (0.15f / getNumVertices()) + 0.85f * sum );
-			setVertexValue(vertexValue);
+			DoubleWritable vertexValue = new DoubleWritable( (0.15f / getTotalNumVertices()) + 0.85f * sum );
+			setValue(vertexValue);
 		}
 
 		if (getSuperstep() < NUM_ITERATIONS) {
-			long edges = getNumOutEdges();
-			sendMsgToAllEdges(new DoubleWritable(getVertexValue().get() / edges));
+			long edges = getNumEdges();
+			sendMessageToAllEdges(new DoubleWritable(getValue().get() / edges));
 		} else {
 			voteToHalt();
 		}

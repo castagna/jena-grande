@@ -18,9 +18,10 @@
 
 package org.apache.jena.grande.giraph.pagerank;
 
-import org.apache.giraph.examples.LongSumAggregator;
-import org.apache.giraph.examples.SumAggregator;
+import org.apache.giraph.aggregators.DoubleSumAggregator;
+import org.apache.giraph.aggregators.LongSumAggregator;
 import org.apache.giraph.graph.Aggregator;
+import org.apache.giraph.graph.DefaultMasterCompute;
 import org.apache.giraph.graph.WorkerContext;
 import org.apache.hadoop.io.DoubleWritable;
 import org.slf4j.Logger;
@@ -33,22 +34,28 @@ public class PageRankVertexWorkerContext extends WorkerContext {
 	public static double errorPrevious = Double.MAX_VALUE;
 	public static double danglingPrevious = 0d;
 	
+	// TODO: double check this... how is calling initialize()?
+	public static class SimplePageRankVertexMasterCompute extends DefaultMasterCompute {
+		@Override
+		public void initialize() throws InstantiationException, IllegalAccessException {
+			registerAggregator("dangling-current", DoubleSumAggregator.class);
+			registerAggregator("error-current", DoubleSumAggregator.class);
+			registerAggregator("pagerank-sum", DoubleSumAggregator.class);
+			registerAggregator("vertices-count", LongSumAggregator.class);
+		}
+	}
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	public void preApplication() throws InstantiationException, IllegalAccessException {
 		log.debug("preApplication()");
-		registerAggregator("dangling-current", SumAggregator.class);
-		registerAggregator("error-current", SumAggregator.class);
-		registerAggregator("pagerank-sum", SumAggregator.class);
-		registerAggregator("vertices-count", LongSumAggregator.class);
-
-		((Aggregator<DoubleWritable>)getAggregator("error-current")).setAggregatedValue( new DoubleWritable( Double.MAX_VALUE ) );
+		((Aggregator<DoubleWritable>)getAggregatedValue("error-current")).setAggregatedValue( new DoubleWritable( Double.MAX_VALUE ) );
 	}
 
 	@Override
 	public void postApplication() {
 		log.debug("postApplication()");
-		log.debug("postApplication() pagerank-sum={}", getAggregator("pagerank-sum").getAggregatedValue());
+		log.debug("postApplication() pagerank-sum={}", getAggregatedValue("pagerank-sum"));
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -56,11 +63,11 @@ public class PageRankVertexWorkerContext extends WorkerContext {
 	public void preSuperstep() {
 		log.debug("preSuperstep()");
 		if ( getSuperstep() > 2 ) {
-			errorPrevious = ((Aggregator<DoubleWritable>)getAggregator("error-current")).getAggregatedValue().get();
-			((Aggregator<DoubleWritable>)getAggregator("error-current")).setAggregatedValue( new DoubleWritable(0L) );
+			errorPrevious = ((Aggregator<DoubleWritable>)getAggregatedValue("error-current")).getAggregatedValue().get();
+			((Aggregator<DoubleWritable>)getAggregatedValue("error-current")).setAggregatedValue( new DoubleWritable(0L) );
 		}
-		danglingPrevious = ((Aggregator<DoubleWritable>)getAggregator("dangling-current")).getAggregatedValue().get();
-		((Aggregator<DoubleWritable>)getAggregator("dangling-current")).setAggregatedValue( new DoubleWritable(0L) );
+		danglingPrevious = ((Aggregator<DoubleWritable>)getAggregatedValue("dangling-current")).getAggregatedValue().get();
+		((Aggregator<DoubleWritable>)getAggregatedValue("dangling-current")).setAggregatedValue( new DoubleWritable(0L) );
 	}
 
 	@Override

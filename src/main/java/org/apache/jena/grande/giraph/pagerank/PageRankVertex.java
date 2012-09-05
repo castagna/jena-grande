@@ -18,8 +18,6 @@
 
 package org.apache.jena.grande.giraph.pagerank;
 
-import java.util.Iterator;
-
 import org.apache.giraph.graph.Aggregator;
 import org.apache.giraph.graph.EdgeListVertex;
 import org.apache.hadoop.io.DoubleWritable;
@@ -42,13 +40,13 @@ public class PageRankVertex extends EdgeListVertex<Text, DoubleWritable, NullWri
 	private Aggregator<?> pagerankSumAggegator;
 
 	@Override
-	public void compute(Iterator<DoubleWritable> msgIterator) {
-		log.debug("{}#{} compute() vertexValue={}", new Object[]{getVertexId(), getSuperstep(), getVertexValue()});
+	public void compute(Iterable<DoubleWritable> msgIterator) {
+		log.debug("{}#{} compute() vertexValue={}", new Object[]{getId(), getSuperstep(), getValue()});
 
-		danglingCurrentAggegator = getAggregator("dangling-current");
-		@SuppressWarnings("unchecked") Aggregator<DoubleWritable> errorCurrentAggegator = (Aggregator<DoubleWritable>)getAggregator("error-current");
-		pagerankSumAggegator = getAggregator("pagerank-sum");
-		@SuppressWarnings("unchecked") Aggregator<LongWritable> verticesCountAggregator = (Aggregator<LongWritable>)getAggregator("vertices-count");
+		danglingCurrentAggegator = getAggregatedValue("dangling-current");
+		@SuppressWarnings("unchecked") Aggregator<DoubleWritable> errorCurrentAggegator = (Aggregator<DoubleWritable>)getAggregatedValue("error-current");
+		pagerankSumAggegator = getAggregatedValue("pagerank-sum");
+		@SuppressWarnings("unchecked") Aggregator<LongWritable> verticesCountAggregator = (Aggregator<LongWritable>)getAggregatedValue("vertices-count");
 
 		long numVertices = verticesCountAggregator.getAggregatedValue().get();
 		double danglingNodesContribution = PageRankVertexWorkerContext.danglingPrevious;
@@ -56,28 +54,27 @@ public class PageRankVertex extends EdgeListVertex<Text, DoubleWritable, NullWri
 		tolerance = getConf().getFloat("giraph.pagerank.tolerance", DEFAULT_TOLERANCE);
 		
 		if ( getSuperstep() == 0 ) {
-			log.debug("{}#{} compute(): sending fake messages to count vertices, including 'implicit' dangling ones", getVertexId(), getSuperstep());
-			sendMsgToAllEdges ( new DoubleWritable() );
+			log.debug("{}#{} compute(): sending fake messages to count vertices, including 'implicit' dangling ones", getId(), getSuperstep());
+			sendMessageToAllEdges ( new DoubleWritable() );
 		} else if ( getSuperstep() == 1 ) {
-			log.debug("{}#{} compute(): counting vertices including 'implicit' dangling ones", getVertexId(), getSuperstep());
+			log.debug("{}#{} compute(): counting vertices including 'implicit' dangling ones", getId(), getSuperstep());
 			verticesCountAggregator.aggregate ( new LongWritable(1L) );
 		} else if ( getSuperstep() == 2 ) {
-			log.debug("{}#{} compute(): initializing pagerank scores to 1/N, N={}", new Object[]{getVertexId(), getSuperstep(), numVertices});
+			log.debug("{}#{} compute(): initializing pagerank scores to 1/N, N={}", new Object[]{getId(), getSuperstep(), numVertices});
 			DoubleWritable vertexValue = new DoubleWritable ( 1.0 / numVertices );
-			setVertexValue(vertexValue);			
-			log.debug("{}#{} compute() vertexValue <-- {}", new Object[]{getVertexId(), getSuperstep(), getVertexValue()});
+			setValue(vertexValue);			
+			log.debug("{}#{} compute() vertexValue <-- {}", new Object[]{getId(), getSuperstep(), getValue()});
 			sendMessages();
 		} else if ( getSuperstep() > 2 ) {
 			double sum = 0;
-			while (msgIterator.hasNext()) {
-				double msgValue = msgIterator.next().get(); 
-				log.debug("{}#{} compute() <-- {}", new Object[]{getVertexId(), getSuperstep(), msgValue});				
-				sum += msgValue;
+			for ( DoubleWritable msgValue : msgIterator ) {
+				log.debug("{}#{} compute() <-- {}", new Object[]{getId(), getSuperstep(), msgValue});				
+				sum += msgValue.get();
 			}
 			DoubleWritable vertexValue = new DoubleWritable( ( 0.15f / numVertices ) + 0.85f * ( sum + danglingNodesContribution / numVertices ) );
-			errorCurrentAggegator.aggregate( new DoubleWritable(Math.abs(vertexValue.get() - getVertexValue().get())) );
-			setVertexValue(vertexValue);
-			log.debug("{}#{} compute() vertexValue <-- {}", new Object[]{getVertexId(), getSuperstep(), getVertexValue()});
+			errorCurrentAggegator.aggregate( new DoubleWritable(Math.abs(vertexValue.get() - getValue().get())) );
+			setValue(vertexValue);
+			log.debug("{}#{} compute() vertexValue <-- {}", new Object[]{getId(), getSuperstep(), getValue()});
 			sendMessages();				
 		}
 	}
@@ -85,16 +82,16 @@ public class PageRankVertex extends EdgeListVertex<Text, DoubleWritable, NullWri
 	@SuppressWarnings("unchecked")
 	private void sendMessages() {
 		if ( ( getSuperstep() - 3 < numIterations ) && ( PageRankVertexWorkerContext.errorPrevious > tolerance ) ) {
-			long edges = getNumOutEdges();
+			long edges = getNumEdges();
 			if ( edges > 0 )  {
-				sendMsgToAllEdges ( new DoubleWritable(getVertexValue().get() / edges) );
+				sendMessageToAllEdges ( new DoubleWritable(getValue().get() / edges) );
 			} else {
-				((Aggregator<DoubleWritable>)danglingCurrentAggegator).aggregate( getVertexValue() );
+				((Aggregator<DoubleWritable>)danglingCurrentAggegator).aggregate( getValue() );
 			}
 		} else {
-			((Aggregator<DoubleWritable>)pagerankSumAggegator).aggregate ( getVertexValue() );
+			((Aggregator<DoubleWritable>)pagerankSumAggegator).aggregate ( getValue() );
 			voteToHalt();
-			log.debug("{}#{} compute() --> halt", getVertexId(), getSuperstep());
+			log.debug("{}#{} compute() --> halt", getId(), getSuperstep());
 		}
 	}
 

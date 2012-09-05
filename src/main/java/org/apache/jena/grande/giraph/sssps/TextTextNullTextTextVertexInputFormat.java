@@ -21,7 +21,7 @@ package org.apache.jena.grande.giraph.sssps;
 import java.io.IOException;
 
 import org.apache.giraph.graph.VertexReader;
-import org.apache.giraph.lib.TextVertexInputFormat;
+import org.apache.giraph.io.TextVertexInputFormat;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;

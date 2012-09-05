@@ -19,12 +19,12 @@
 package org.apache.jena.grande.giraph.sssps;
 
 import java.io.IOException;
-import java.util.Iterator;
 
-import org.apache.giraph.examples.IntIntNullIntTextInputFormat;
+import org.apache.giraph.graph.Edge;
 import org.apache.giraph.graph.EdgeListVertex;
 import org.apache.giraph.graph.GiraphJob;
-import org.apache.giraph.lib.IdWithValueTextOutputFormat;
+import org.apache.giraph.io.IdWithValueTextOutputFormat;
+import org.apache.giraph.io.IntIntNullIntTextInputFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -73,32 +73,31 @@ public class SingleSourceShortestPaths extends EdgeListVertex<IntWritable, IntWr
 	}
 
 	@Override
-	public void compute(Iterator<IntWritable> msgIterator) throws IOException {
-		log.debug("compute(...)::{}#{} ...", getVertexId(), getSuperstep());
+	public void compute(Iterable<IntWritable> msgIterator) throws IOException {
+		log.debug("compute(...)::{}#{} ...", getId(), getSuperstep());
 	    if ( ( getSuperstep() == 0 ) || ( getSuperstep() == 1 ) ) {
-	    	setVertexValue(new IntWritable(Integer.MAX_VALUE));
+	    	setValue(new IntWritable(Integer.MAX_VALUE));
 	    }
 	    int minDist = isSource() ? 0 : Integer.MAX_VALUE;
-	    log.debug("compute(...)::{}#{}: min = {}, value = {}", new Object[]{getVertexId(), getSuperstep(), minDist, getVertexValue()});
-	    while (msgIterator.hasNext()) {
-	    	IntWritable msg = msgIterator.next();
-	    	log.debug("compute(...)::{}#{}: <--[{}]-- from ?", new Object[]{getVertexId(), getSuperstep(), msg});
+	    log.debug("compute(...)::{}#{}: min = {}, value = {}", new Object[]{getId(), getSuperstep(), minDist, getValue()});
+	    for ( IntWritable msg : msgIterator ) {
+	    	log.debug("compute(...)::{}#{}: <--[{}]-- from ?", new Object[]{getId(), getSuperstep(), msg});
 	        minDist = Math.min(minDist, msg.get());
-		    log.debug("compute(...)::{}#{}: min = {}", new Object[]{getVertexId(), getSuperstep(), minDist});
+		    log.debug("compute(...)::{}#{}: min = {}", new Object[]{getId(), getSuperstep(), minDist});
 	    }
-	    if (minDist < getVertexValue().get()) {
-	        setVertexValue(new IntWritable(minDist));
-		    log.debug("compute(...)::{}#{}: value = {}", new Object[]{getVertexId(), getSuperstep(), getVertexValue()});
-	        for (IntWritable targetVertexId : this) {
-	    	    log.debug("compute(...)::{}#{}: {} --[{}]--> {}", new Object[]{getVertexId(), getSuperstep(), getVertexId(), minDist+1, targetVertexId});
-	        	sendMsg(targetVertexId, new IntWritable(minDist + 1));
+	    if (minDist < getValue().get()) {
+	        setValue(new IntWritable(minDist));
+		    log.debug("compute(...)::{}#{}: value = {}", new Object[]{getId(), getSuperstep(), getValue()});
+		    for (Edge<IntWritable,NullWritable> edge : getEdges()) {
+	    	    log.debug("compute(...)::{}#{}: {} --[{}]--> {}", new Object[]{getId(), getSuperstep(), getId(), minDist+1, edge.getTargetVertexId()});
+	        	sendMessage(edge.getTargetVertexId(), new IntWritable(minDist + 1));
 	        }
 	    }
 	    voteToHalt();
 	}
 
 	private boolean isSource() {
-		boolean result = getVertexId().get() == getConf().getInt(SOURCE_VERTEX, SOURCE_VERTEX_DEFAULT);
+		boolean result = getId().get() == getConf().getInt(SOURCE_VERTEX, SOURCE_VERTEX_DEFAULT);
 		log.debug("isSource() --> {}", result);
 		return result;
 	}

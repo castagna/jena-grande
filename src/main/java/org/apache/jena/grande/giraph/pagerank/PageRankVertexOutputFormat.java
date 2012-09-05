@@ -21,7 +21,7 @@ package org.apache.jena.grande.giraph.pagerank;
 import java.io.IOException;
 
 import org.apache.giraph.graph.VertexWriter;
-import org.apache.giraph.lib.TextVertexOutputFormat;
+import org.apache.giraph.io.TextVertexOutputFormat;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;

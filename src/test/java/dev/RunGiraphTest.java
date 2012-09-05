@@ -23,6 +23,8 @@ import java.util.Map;
 import junit.framework.TestCase;
 
 import org.apache.giraph.examples.SimpleShortestPathsVertex;
+import org.apache.giraph.io.JsonLongDoubleFloatDoubleVertexInputFormat;
+import org.apache.giraph.io.JsonLongDoubleFloatDoubleVertexOutputFormat;
 import org.apache.giraph.utils.InternalVertexRunner;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -47,8 +49,8 @@ public class RunGiraphTest extends TestCase {
 	public void testRun() throws Exception {
 	    Iterable<String> results = InternalVertexRunner.run(
 	    	SimpleShortestPathsVertex.class,
-	        SimpleShortestPathsVertex.SimpleShortestPathsVertexInputFormat.class,
-	        SimpleShortestPathsVertex.SimpleShortestPathsVertexOutputFormat.class,
+	    	JsonLongDoubleFloatDoubleVertexInputFormat.class,
+	    	JsonLongDoubleFloatDoubleVertexOutputFormat.class,
 	        params, 
 	        graph
 	    );

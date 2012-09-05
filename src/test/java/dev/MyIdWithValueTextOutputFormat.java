@@ -21,9 +21,9 @@ package dev;
 
 import java.io.IOException;
 
-import org.apache.giraph.graph.BasicVertex;
+import org.apache.giraph.graph.Vertex;
 import org.apache.giraph.graph.VertexWriter;
-import org.apache.giraph.lib.TextVertexOutputFormat;
+import org.apache.giraph.io.TextVertexOutputFormat;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.WritableComparable;
@@ -79,7 +79,7 @@ public class MyIdWithValueTextOutputFormat<I extends WritableComparable,
 	private static final Logger log = LoggerFactory.getLogger(MyIdWithValueTextOutputFormat.class);
     
     @Override
-    public void writeVertex(BasicVertex<I, V, E, ?> vertex) throws IOException,
+    public void writeVertex(Vertex<I, V, E, ?> vertex) throws IOException,
     InterruptedException {
       if (delimiter == null) {
         delimiter = getContext().getConfiguration()
@@ -91,14 +91,14 @@ public class MyIdWithValueTextOutputFormat<I extends WritableComparable,
       boolean reverseOutput = getContext().getConfiguration()
           .getBoolean(REVERSE_ID_AND_VALUE, REVERSE_ID_AND_VALUE_DEFAULT);
 
-      log.debug(vertex.getVertexId() + " " + vertex.getVertexValue());
+      log.debug(vertex.getId() + " " + vertex.getValue());
       
       if (reverseOutput) {
-        first = vertex.getVertexValue().toString();
-        second = vertex.getVertexId().toString();
+        first = vertex.getValue().toString();
+        second = vertex.getId().toString();
       } else {
-        first = vertex.getVertexId().toString();
-        second = vertex.getVertexValue().toString();
+        first = vertex.getId().toString();
+        second = vertex.getValue().toString();
       }
 
       Text line = new Text(first + delimiter + second);

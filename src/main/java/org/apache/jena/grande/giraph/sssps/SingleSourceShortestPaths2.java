@@ -20,8 +20,8 @@ package org.apache.jena.grande.giraph.sssps;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Iterator;
 
+import org.apache.giraph.graph.Edge;
 import org.apache.giraph.graph.EdgeListVertex;
 import org.apache.giraph.graph.GiraphJob;
 import org.apache.hadoop.conf.Configuration;
@@ -74,37 +74,36 @@ public class SingleSourceShortestPaths2 extends EdgeListVertex<Text, Text, NullW
 	}
 
 	@Override
-	public void compute(Iterator<Text> msgIterator) throws IOException {
+	public void compute(Iterable<Text> msgIterator) throws IOException {
 		try {
-			log.debug("{}#{} - compute(...)", new Object[]{getVertexId(), getSuperstep()});
+			log.debug("{}#{} - compute(...)", new Object[]{getId(), getSuperstep()});
 			if ( getSuperstep() == 0 ) {
 				setDistance(Integer.MAX_VALUE);
 		    }		    
 		    int minDist = isSource() ? 0 : Integer.MAX_VALUE;
-			log.debug("{}#{} - compute(...) < min = {}, value = {}", new Object[]{getVertexId(), getSuperstep(), minDist, getVertexValue()});
+			log.debug("{}#{} - compute(...) < min = {}, value = {}", new Object[]{getId(), getSuperstep(), minDist, getValue()});
 		    Text minMsg = null;
-		    while (msgIterator.hasNext()) {
-		    	Text msg = msgIterator.next();
-		    	log.debug("{}#{} - compute(...): <--[{}]-- from ?", new Object[]{getVertexId(), getSuperstep(), msg});
+		    for ( Text msg : msgIterator ) {
+		    	log.debug("{}#{} - compute(...): <--[{}]-- from ?", new Object[]{getId(), getSuperstep(), msg});
 		    	int msgDist = getDistance(msg);
 		    	if ( msgDist < minDist ) {
 		    		minDist = msgDist;
 		    		minMsg = msg;
 		    	}
 		    }
-		    if ( minDist < getDistance(getVertexValue()) ) {
+		    if ( minDist < getDistance(getValue()) ) {
 		        Text msg = getMessage(minDist + 1, minMsg);
 		        if ( minMsg != null ) { 
-		        	setVertexValue(minMsg);
+		        	setValue(minMsg);
 		        } else {
-		        	setVertexValue(new Text("0"));
+		        	setValue(new Text("0"));
 		        }
-		        for (Text targetVertexId : this) {
-		    	    log.debug("{}#{} - compute(...): {} --[{}]--> {}", new Object[]{getVertexId(), getSuperstep(), getVertexId(), msg, targetVertexId});
-		        	sendMsg(targetVertexId, msg);
+		        for (Edge<Text,NullWritable> edge : getEdges()) {
+		    	    log.debug("{}#{} - compute(...): {} --[{}]--> {}", new Object[]{getId(), getSuperstep(), getId(), msg, edge.getTargetVertexId()});
+		        	sendMessage(edge.getTargetVertexId(), msg);
 		        }
 		    }
-		    log.debug("{}#{} - compute(...) > min = {}, value = {}", new Object[]{getVertexId(), getSuperstep(), minDist, getVertexValue()});
+		    log.debug("{}#{} - compute(...) > min = {}, value = {}", new Object[]{getId(), getSuperstep(), minDist, getValue()});
 		    voteToHalt();
 		} catch (Throwable e) {
 			log.debug(e.getMessage(), e);
@@ -113,12 +112,12 @@ public class SingleSourceShortestPaths2 extends EdgeListVertex<Text, Text, NullW
 	}
 
 	private void setDistance(int distance) {
-		log.debug("{}#{} - setDistance({})", new Object[]{getVertexId(), getSuperstep(), distance});
+		log.debug("{}#{} - setDistance({})", new Object[]{getId(), getSuperstep(), distance});
 
 		StringBuilder sb = new StringBuilder();
 		sb.append(distance);
 
-		Text value = getVertexValue();
+		Text value = getValue();
 		if ( value != null ) {
 			String[] tokens = value.toString().split(" ");
 			for ( int i = 1; i < tokens.length; i++ ) {
@@ -127,14 +126,14 @@ public class SingleSourceShortestPaths2 extends EdgeListVertex<Text, Text, NullW
 			}			
 		}
 		
-		setVertexValue(new Text(sb.toString()));
+		setValue(new Text(sb.toString()));
 	}
 
 	private int getDistance(Text msg) {
 		if ( msg == null ) return Integer.MAX_VALUE;
 		String[] tokens = msg.toString().split(" ");
 		int result = Integer.parseInt(tokens[0]);
-		log.debug("{}#{} - getDistance({}) --> {}", new Object[]{getVertexId(), getSuperstep(), msg, result});
+		log.debug("{}#{} - getDistance({}) --> {}", new Object[]{getId(), getSuperstep(), msg, result});
 		return result;
 	}
 	
@@ -151,15 +150,15 @@ public class SingleSourceShortestPaths2 extends EdgeListVertex<Text, Text, NullW
 			sb.append(str);
 		}
 		sb.append(" ");
-		sb.append(getVertexId().toString());
+		sb.append(getId().toString());
 		Text result = new Text(sb.toString());
-		log.debug("{}#{} - getMessage({}, {}) --> {}", new Object[]{getVertexId(), getSuperstep(), distance, msg, result});
+		log.debug("{}#{} - getMessage({}, {}) --> {}", new Object[]{getId(), getSuperstep(), distance, msg, result});
 		return result;
 	}
 
 	private boolean isSource() {
-		boolean result = getVertexId().toString().equals ( getConf().get(SOURCE_VERTEX, SOURCE_VERTEX_DEFAULT) );
-		log.debug("{}#{} - isSource() --> {}", new Object[]{getVertexId(), getSuperstep(), result});
+		boolean result = getId().toString().equals ( getConf().get(SOURCE_VERTEX, SOURCE_VERTEX_DEFAULT) );
+		log.debug("{}#{} - isSource() --> {}", new Object[]{getId(), getSuperstep(), result});
 		return result;
 	}
 

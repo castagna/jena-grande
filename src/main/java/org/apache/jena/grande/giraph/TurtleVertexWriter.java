@@ -20,8 +20,8 @@ package org.apache.jena.grande.giraph;
 
 import java.io.IOException;
 
-import org.apache.giraph.graph.BasicVertex;
-import org.apache.giraph.lib.TextVertexOutputFormat.TextVertexWriter;
+import org.apache.giraph.graph.Vertex;
+import org.apache.giraph.io.TextVertexOutputFormat.TextVertexWriter;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.RecordWriter;
@@ -39,8 +39,8 @@ public class TurtleVertexWriter extends TextVertexWriter<NodeWritable, IntWritab
 	}
 
 	@Override
-	public void writeVertex(BasicVertex<NodeWritable, IntWritable, NodeWritable, ?> vertex) throws IOException, InterruptedException {
-		log.info("write({},{})", new Object[]{vertex.getVertexId(), vertex.getVertexValue()});
+	public void writeVertex(Vertex<NodeWritable, IntWritable, NodeWritable, ?> vertex) throws IOException, InterruptedException {
+		log.info("write({},{})", new Object[]{vertex.getId(), vertex.getValue()});
 		// TODO: this must be done differently, or not?
 		getRecordWriter().write (null, null);
 	}

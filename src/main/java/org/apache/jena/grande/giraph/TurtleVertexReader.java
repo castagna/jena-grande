@@ -21,9 +21,9 @@ package org.apache.jena.grande.giraph;
 import java.io.IOException;
 import java.util.Map;
 
-import org.apache.giraph.graph.BasicVertex;
+import org.apache.giraph.graph.Vertex;
 import org.apache.giraph.graph.BspUtils;
-import org.apache.giraph.lib.TextVertexInputFormat.TextVertexReader;
+import org.apache.giraph.io.TextVertexInputFormat.TextVertexReader;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -60,9 +60,9 @@ public class TurtleVertexReader extends TextVertexReader<NodeWritable, IntWritab
 	}
 
 	@Override
-	public BasicVertex<NodeWritable, IntWritable, NodeWritable, IntWritable> getCurrentVertex() throws IOException, InterruptedException {
+	public Vertex<NodeWritable, IntWritable, NodeWritable, IntWritable> getCurrentVertex() throws IOException, InterruptedException {
 		Configuration conf = getContext().getConfiguration();
-		BasicVertex<NodeWritable, IntWritable, NodeWritable, IntWritable> vertex = BspUtils.createVertex(conf);
+		Vertex<NodeWritable, IntWritable, NodeWritable, IntWritable> vertex = BspUtils.createVertex(conf);
 		Text line = getRecordReader().getCurrentValue();
 		NodeWritable vertexId = getVertexId(line);
 		Graph graph = RiotLoader.graphFromString(line.toString(), Lang.TURTLE, "");

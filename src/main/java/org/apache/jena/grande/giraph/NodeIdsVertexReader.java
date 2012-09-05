@@ -20,9 +20,9 @@ package org.apache.jena.grande.giraph;
 
 import java.io.IOException;
 
-import org.apache.giraph.graph.BasicVertex;
+import org.apache.giraph.graph.Vertex;
 import org.apache.giraph.graph.BspUtils;
-import org.apache.giraph.lib.TextVertexInputFormat;
+import org.apache.giraph.io.TextVertexInputFormat;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
@@ -40,8 +40,8 @@ public class NodeIdsVertexReader<V extends Writable, M extends Writable> extends
 	}
 
 	@Override
-	public BasicVertex<LongWritable, V, LongWritable, M> getCurrentVertex() throws IOException, InterruptedException {
-		BasicVertex<LongWritable, V, LongWritable, M> vertex = BspUtils.createVertex(getContext().getConfiguration());
+	public Vertex<LongWritable, V, LongWritable, M> getCurrentVertex() throws IOException, InterruptedException {
+		Vertex<LongWritable, V, LongWritable, M> vertex = BspUtils.createVertex(getContext().getConfiguration());
 		LongWritable key = getRecordReader().getCurrentKey();
 		Text value = getRecordReader().getCurrentValue();
 		

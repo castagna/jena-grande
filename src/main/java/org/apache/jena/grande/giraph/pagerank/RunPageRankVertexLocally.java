@@ -65,13 +65,18 @@ public class RunPageRankVertexLocally {
 	}
 	
 	static String[] getData( String filename ) throws IOException {
-		BufferedReader in = new BufferedReader(new FileReader(filename));
-		String line = null;
-		ArrayList<String> data = new ArrayList<String>();
-		while ( ( line = in.readLine() ) != null ) {
-			data.add(line);
+		BufferedReader in = null;
+		try {
+			in = new BufferedReader(new FileReader(filename));
+			String line = null;
+			ArrayList<String> data = new ArrayList<String>();
+			while ( ( line = in.readLine() ) != null ) {
+				data.add(line);
+			}
+			return data.toArray(new String[]{});
+		} finally {
+			if ( in != null ) in.close();
 		}
-		return data.toArray(new String[]{});
 	}
 	
 }

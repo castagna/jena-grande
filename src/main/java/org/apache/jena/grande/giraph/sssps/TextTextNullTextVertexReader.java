@@ -22,9 +22,9 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import org.apache.giraph.graph.BasicVertex;
+import org.apache.giraph.graph.Vertex;
 import org.apache.giraph.graph.BspUtils;
-import org.apache.giraph.lib.TextVertexInputFormat;
+import org.apache.giraph.io.TextVertexInputFormat;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
@@ -47,8 +47,8 @@ public class TextTextNullTextVertexReader  extends TextVertexInputFormat.TextVer
 	}
 
 	@Override
-	public BasicVertex<Text, Text, NullWritable, Text> getCurrentVertex() throws IOException, InterruptedException {
-		BasicVertex<Text, Text, NullWritable, Text> vertex = BspUtils.<Text, Text, NullWritable, Text>createVertex(getContext().getConfiguration());
+	public Vertex<Text, Text, NullWritable, Text> getCurrentVertex() throws IOException, InterruptedException {
+		Vertex<Text, Text, NullWritable, Text> vertex = BspUtils.<Text, Text, NullWritable, Text>createVertex(getContext().getConfiguration());
 		String[] tokens = SEPARATOR.split(getRecordReader().getCurrentValue().toString());
 		Map<Text, NullWritable> edges = Maps.newHashMapWithExpectedSize(tokens.length - 1);
 		for (int n = 1; n < tokens.length; n++) {

@@ -21,9 +21,9 @@ package org.apache.jena.grande.giraph.pagerank;
 import java.io.IOException;
 import java.util.Map;
 
-import org.apache.giraph.graph.BasicVertex;
+import org.apache.giraph.graph.Vertex;
 import org.apache.giraph.graph.BspUtils;
-import org.apache.giraph.lib.TextVertexInputFormat.TextVertexReader;
+import org.apache.giraph.io.TextVertexInputFormat.TextVertexReader;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -52,10 +52,10 @@ public class PageRankVertexReader extends TextVertexReader<Text, DoubleWritable,
 	}
 
 	@Override
-	public BasicVertex<Text, DoubleWritable, NullWritable, DoubleWritable> getCurrentVertex() throws IOException, InterruptedException {
+	public Vertex<Text, DoubleWritable, NullWritable, DoubleWritable> getCurrentVertex() throws IOException, InterruptedException {
 	    Configuration conf = getContext().getConfiguration();
 	    String line = getRecordReader().getCurrentValue().toString();
-	    BasicVertex<Text, DoubleWritable, NullWritable, DoubleWritable> vertex = BspUtils.createVertex(conf);
+	    Vertex<Text, DoubleWritable, NullWritable, DoubleWritable> vertex = BspUtils.createVertex(conf);
 	    
 	    String tokens[] = line.split("[\t ]"); // TODO: make this configurable
 	    Text vertexId = new Text(tokens[0]);
