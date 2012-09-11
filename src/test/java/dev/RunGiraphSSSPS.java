@@ -20,8 +20,9 @@ package dev;
 
 import java.util.HashMap;
 
-import org.apache.giraph.io.IntIntNullIntTextInputFormat;
 import org.apache.giraph.io.IdWithValueTextOutputFormat;
+import org.apache.giraph.io.IntIntNullIntTextInputFormat;
+import org.apache.giraph.utils.InternalVertexRunner;
 import org.apache.jena.grande.giraph.sssps.SingleSourceShortestPaths;
 
 public class RunGiraphSSSPS {
@@ -36,7 +37,7 @@ public class RunGiraphSSSPS {
 	};
 	
 	public static void main(String[] args) throws Exception {
-	    Iterable<String> results = MyInternalVertexRunner.run(
+	    Iterable<String> results = InternalVertexRunner.run(
 	    	SingleSourceShortestPaths.class,
 	        IntIntNullIntTextInputFormat.class,
 	        IdWithValueTextOutputFormat.class,

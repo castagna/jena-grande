@@ -18,7 +18,6 @@
 
 package org.apache.jena.grande.giraph.pagerank;
 
-import org.apache.giraph.graph.Aggregator;
 import org.apache.giraph.graph.EdgeListVertex;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -36,20 +35,11 @@ public class PageRankVertex extends EdgeListVertex<Text, DoubleWritable, NullWri
 
 	private int numIterations;
 	private double tolerance;
-	private Aggregator<?> danglingCurrentAggegator;
-	private Aggregator<?> pagerankSumAggegator;
-
+	
 	@Override
 	public void compute(Iterable<DoubleWritable> msgIterator) {
 		log.debug("{}#{} compute() vertexValue={}", new Object[]{getId(), getSuperstep(), getValue()});
 
-		danglingCurrentAggegator = getAggregatedValue("dangling-current");
-		@SuppressWarnings("unchecked") Aggregator<DoubleWritable> errorCurrentAggegator = (Aggregator<DoubleWritable>)getAggregatedValue("error-current");
-		pagerankSumAggegator = getAggregatedValue("pagerank-sum");
-		@SuppressWarnings("unchecked") Aggregator<LongWritable> verticesCountAggregator = (Aggregator<LongWritable>)getAggregatedValue("vertices-count");
-
-		long numVertices = verticesCountAggregator.getAggregatedValue().get();
-		double danglingNodesContribution = PageRankVertexWorkerContext.danglingPrevious;
 		numIterations = getConf().getInt("giraph.pagerank.iterations", DEFAULT_NUM_ITERATIONS);
 		tolerance = getConf().getFloat("giraph.pagerank.tolerance", DEFAULT_TOLERANCE);
 		
@@ -58,38 +48,42 @@ public class PageRankVertex extends EdgeListVertex<Text, DoubleWritable, NullWri
 			sendMessageToAllEdges ( new DoubleWritable() );
 		} else if ( getSuperstep() == 1 ) {
 			log.debug("{}#{} compute(): counting vertices including 'implicit' dangling ones", getId(), getSuperstep());
-			verticesCountAggregator.aggregate ( new LongWritable(1L) );
+			aggregate ( "vertices-count", new LongWritable(1L) );
+			aggregate ( "error-current", new DoubleWritable(Double.MAX_VALUE) );
 		} else if ( getSuperstep() == 2 ) {
+			long numVertices = ((LongWritable)getAggregatedValue("vertices-count")).get();
+			aggregate ( "error-current", new DoubleWritable(Double.MAX_VALUE) );
 			log.debug("{}#{} compute(): initializing pagerank scores to 1/N, N={}", new Object[]{getId(), getSuperstep(), numVertices});
 			DoubleWritable vertexValue = new DoubleWritable ( 1.0 / numVertices );
 			setValue(vertexValue);			
 			log.debug("{}#{} compute() vertexValue <-- {}", new Object[]{getId(), getSuperstep(), getValue()});
 			sendMessages();
 		} else if ( getSuperstep() > 2 ) {
+			long numVertices = ((LongWritable)getAggregatedValue("vertices-count")).get();
 			double sum = 0;
 			for ( DoubleWritable msgValue : msgIterator ) {
 				log.debug("{}#{} compute() <-- {}", new Object[]{getId(), getSuperstep(), msgValue});				
 				sum += msgValue.get();
 			}
+			double danglingNodesContribution = ((DoubleWritable)getAggregatedValue("dangling-previous")).get();
 			DoubleWritable vertexValue = new DoubleWritable( ( 0.15f / numVertices ) + 0.85f * ( sum + danglingNodesContribution / numVertices ) );
-			errorCurrentAggegator.aggregate( new DoubleWritable(Math.abs(vertexValue.get() - getValue().get())) );
+			aggregate( "error-current", new DoubleWritable(Math.abs(vertexValue.get() - getValue().get())) );
 			setValue(vertexValue);
 			log.debug("{}#{} compute() vertexValue <-- {}", new Object[]{getId(), getSuperstep(), getValue()});
 			sendMessages();				
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private void sendMessages() {
-		if ( ( getSuperstep() - 3 < numIterations ) && ( PageRankVertexWorkerContext.errorPrevious > tolerance ) ) {
+		if ( ( getSuperstep() - 3 < numIterations ) && ( ((DoubleWritable)getAggregatedValue("error-previous")).get() > tolerance ) ) {
 			long edges = getNumEdges();
 			if ( edges > 0 )  {
 				sendMessageToAllEdges ( new DoubleWritable(getValue().get() / edges) );
 			} else {
-				((Aggregator<DoubleWritable>)danglingCurrentAggegator).aggregate( getValue() );
+				aggregate( "dangling-current", getValue() );
 			}
 		} else {
-			((Aggregator<DoubleWritable>)pagerankSumAggegator).aggregate ( getValue() );
+			aggregate ( "pagerank-sum", getValue() );
 			voteToHalt();
 			log.debug("{}#{} compute() --> halt", getId(), getSuperstep());
 		}

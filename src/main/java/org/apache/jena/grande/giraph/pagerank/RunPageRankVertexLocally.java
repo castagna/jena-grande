@@ -26,17 +26,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.giraph.graph.GiraphJob;
-
-import dev.MyInternalVertexRunner;
+import org.apache.giraph.utils.InternalVertexRunner;
 
 public class RunPageRankVertexLocally {
 
 	public static Map<String, Double> run ( String filename ) throws Exception {		
 		Map<String,String> params = new HashMap<String,String>();
-		params.put(GiraphJob.WORKER_CONTEXT_CLASS, "org.apache.jena.grande.giraph.pagerank.PageRankVertexWorkerContext");
+		params.put(GiraphJob.WORKER_CONTEXT_CLASS, "org.apache.jena.grande.giraph.pagerank.PageRankWorkerContext");
+		params.put(GiraphJob.MASTER_COMPUTE_CLASS, "org.apache.jena.grande.giraph.pagerank.PageRankMasterCompute");
 
 		String[] data = getData ( filename );
-	    Iterable<String> results = MyInternalVertexRunner.run(
+	    Iterable<String> results = InternalVertexRunner.run(
 	    	PageRankVertex.class,
 	        PageRankVertexInputFormat.class,
 	        PageRankVertexOutputFormat.class,
