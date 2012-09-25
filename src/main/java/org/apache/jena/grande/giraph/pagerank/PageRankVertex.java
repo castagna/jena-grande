@@ -33,8 +33,8 @@ public class PageRankVertex extends EdgeListVertex<Text, DoubleWritable, NullWri
 	public static final int DEFAULT_NUM_ITERATIONS = 30;
 	public static final float DEFAULT_TOLERANCE = 0.00000000001f;
 
-	private int numIterations;
-	private double tolerance;
+	private int numIterations = DEFAULT_NUM_ITERATIONS;
+	private double tolerance = DEFAULT_TOLERANCE;
 	
 	@Override
 	public void compute(Iterable<DoubleWritable> msgIterator) {
