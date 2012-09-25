@@ -26,8 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.giraph.GiraphConfiguration;
-
-import dev.MyInternalVertexRunner;
+import org.apache.giraph.utils.InternalVertexRunner;
 
 public class RunPageRankVertexLocally {
 
@@ -37,7 +36,7 @@ public class RunPageRankVertexLocally {
 		params.put(GiraphConfiguration.MASTER_COMPUTE_CLASS, "org.apache.jena.grande.giraph.pagerank.PageRankMasterCompute");
 
 		String[] data = getData ( filename );
-	    Iterable<String> results = MyInternalVertexRunner.run(
+	    Iterable<String> results = InternalVertexRunner.run(
 	    	PageRankVertex.class,
 	        PageRankVertexInputFormat.class,
 	        PageRankVertexOutputFormat.class,
