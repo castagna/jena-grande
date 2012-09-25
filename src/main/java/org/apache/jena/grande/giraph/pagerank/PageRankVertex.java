@@ -31,7 +31,7 @@ public class PageRankVertex extends EdgeListVertex<Text, DoubleWritable, NullWri
 	private static final Logger log = LoggerFactory.getLogger(PageRankVertex.class); 
 
 	public static final int DEFAULT_NUM_ITERATIONS = 30;
-	public static final float DEFAULT_TOLERANCE = 10e-9f;
+	public static final float DEFAULT_TOLERANCE = 0.00000000001f;
 
 	private int numIterations;
 	private double tolerance;
@@ -40,8 +40,12 @@ public class PageRankVertex extends EdgeListVertex<Text, DoubleWritable, NullWri
 	public void compute(Iterable<DoubleWritable> msgIterator) {
 		log.debug("{}#{} compute() vertexValue={}", new Object[]{getId(), getSuperstep(), getValue()});
 
-		numIterations = getConf().getInt("giraph.pagerank.iterations", DEFAULT_NUM_ITERATIONS);
-		tolerance = getConf().getFloat("giraph.pagerank.tolerance", DEFAULT_TOLERANCE);
+		if ( getConf() != null ) {
+			numIterations = getConf().getInt("giraph.pagerank.iterations", DEFAULT_NUM_ITERATIONS);
+			tolerance = getConf().getFloat("giraph.pagerank.tolerance", DEFAULT_TOLERANCE);			
+		} else {
+			log.warn("{}#{} compute() getConf() is null!", getId(), getSuperstep());
+		}
 		
 		if ( getSuperstep() == 0 ) {
 			log.debug("{}#{} compute(): sending fake messages to count vertices, including 'implicit' dangling ones", getId(), getSuperstep());
@@ -75,7 +79,8 @@ public class PageRankVertex extends EdgeListVertex<Text, DoubleWritable, NullWri
 	}
 
 	private void sendMessages() {
-		if ( ( getSuperstep() - 3 < numIterations ) && ( ((DoubleWritable)getAggregatedValue("error-previous")).get() > tolerance ) ) {
+		if ( ( getSuperstep() - 3 < numIterations ) && ( ((DoubleWritable)
+				getAggregatedValue("error-previous")).get() > tolerance ) ) {
 			long edges = getNumEdges();
 			if ( edges > 0 )  {
 				sendMessageToAllEdges ( new DoubleWritable(getValue().get() / edges) );
@@ -88,5 +93,5 @@ public class PageRankVertex extends EdgeListVertex<Text, DoubleWritable, NullWri
 			log.debug("{}#{} compute() --> halt", getId(), getSuperstep());
 		}
 	}
-
+	
 }

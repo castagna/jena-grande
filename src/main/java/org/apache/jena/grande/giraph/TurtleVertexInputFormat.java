@@ -19,25 +19,87 @@
 package org.apache.jena.grande.giraph;
 
 import java.io.IOException;
+import java.util.Map;
 
-import org.apache.giraph.graph.VertexReader;
+import org.apache.giraph.graph.BspUtils;
+import org.apache.giraph.graph.Vertex;
 import org.apache.giraph.io.TextVertexInputFormat;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.jena.grande.NodeEncoder;
 import org.apache.jena.grande.mapreduce.io.NodeWritable;
+import org.openjena.riot.Lang;
+import org.openjena.riot.RiotLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Maps;
+import com.hp.hpl.jena.graph.Graph;
+import com.hp.hpl.jena.graph.Node;
+import com.hp.hpl.jena.graph.Triple;
+import com.hp.hpl.jena.sparql.vocabulary.FOAF;
+import com.hp.hpl.jena.util.iterator.ExtendedIterator;
 
 public class TurtleVertexInputFormat extends TextVertexInputFormat<NodeWritable, IntWritable, NodeWritable, IntWritable> {
 
 	private static final Logger log = LoggerFactory.getLogger(TurtleVertexInputFormat.class);
 	
 	@Override
-	public VertexReader<NodeWritable, IntWritable, NodeWritable, IntWritable> createVertexReader(InputSplit split, TaskAttemptContext context) throws IOException {
-		VertexReader<NodeWritable, IntWritable, NodeWritable, IntWritable> result = new TurtleVertexReader(textInputFormat.createRecordReader(split, context));
+	public TextVertexReader createVertexReader ( InputSplit split, TaskAttemptContext context ) throws IOException {
+		TextVertexReader result = new TurtleVertexReader();
 		log.debug("createVertexReader({}, {}) --> {}", new Object[]{split, context, result});
 	    return result;
+	}
+
+	public class TurtleVertexReader extends TextVertexReader {
+
+		private final Logger log = LoggerFactory.getLogger(TurtleVertexReader.class);
+
+		@Override
+		public boolean nextVertex() throws IOException, InterruptedException {
+			boolean result = getRecordReader().nextKeyValue();
+			log.debug("nextVertex() --> {}", result);
+			return result;
+		}
+
+		@Override
+		public Vertex<NodeWritable, IntWritable, NodeWritable, IntWritable> getCurrentVertex() throws IOException, InterruptedException {
+			Configuration conf = getContext().getConfiguration();
+			Vertex<NodeWritable, IntWritable, NodeWritable, IntWritable> vertex = BspUtils.createVertex(conf);
+			Text line = getRecordReader().getCurrentValue();
+			NodeWritable vertexId = getVertexId(line);
+			Graph graph = RiotLoader.graphFromString(line.toString(), Lang.TURTLE, "");
+			Map<NodeWritable, NodeWritable> edgeMap = getEdgeMap(vertexId, graph);
+			vertex.initialize(vertexId, null, edgeMap, null);
+			log.debug("getCurrentVertex() --> {}", vertex);
+			return vertex;
+		}
+		
+		private NodeWritable getVertexId( Text line ) {
+			String str = line.toString();
+			NodeWritable vertexId = new NodeWritable(NodeEncoder.asNode(str.substring(0, str.indexOf(' '))));
+			log.debug("getVertexId({}) --> {}", line, vertexId);
+			return vertexId;
+		}
+
+		private Map<NodeWritable, NodeWritable> getEdgeMap( NodeWritable vertexId, Graph graph ) {
+			log.debug("getEdgeMap({}, {})", vertexId, graph);
+			Node s = vertexId.getNode();
+			Map<NodeWritable, NodeWritable> edgeMap = Maps.newHashMap();
+			ExtendedIterator<Triple> iter = graph.find(s, FOAF.knows.asNode(), Node.ANY);
+			while ( iter.hasNext() ) {
+				Triple triple = iter.next();
+				NodeWritable o = new NodeWritable(triple.getObject());
+				NodeWritable p = new NodeWritable(triple.getPredicate());
+				log.debug("getEdgeMap: adding {} {}", o, p);
+				edgeMap.put(o, p);
+			}
+			return edgeMap;
+		}
+
 	}
 
 }

@@ -20,6 +20,8 @@ package org.apache.jena.grande.giraph;
 
 import java.io.IOException;
 
+import org.apache.giraph.GiraphConfiguration;
+import org.apache.giraph.ImmutableClassesGiraphConfiguration;
 import org.apache.giraph.graph.Edge;
 import org.apache.giraph.graph.EdgeListVertex;
 import org.apache.giraph.graph.GiraphJob;
@@ -45,7 +47,6 @@ public class FoafShortestPathsVertex extends EdgeListVertex<NodeWritable, IntWri
 
 	public static final String SOURCE_URI = "FoafShortestPathsVertex.sourceURI";
 	public static final String SOURCE_URI_DEFAULT = "http://example.org/alice";
-	private Configuration conf;
 
 	private boolean isSource() {
 		boolean result = getId().getNode().getURI().equals(getContext().getConfiguration().get(SOURCE_URI, SOURCE_URI_DEFAULT));
@@ -76,18 +77,6 @@ public class FoafShortestPathsVertex extends EdgeListVertex<NodeWritable, IntWri
 	    }
 	    voteToHalt();
 	}
-
-	@Override
-	public Configuration getConf() {
-		log.debug("getConf() --> {}", conf);
-		return conf;
-	}
-
-	@Override
-	public void setConf(Configuration conf) {
-		log.debug("setConf({})", conf);
-		this.conf = conf;
-	}
 	
 	@Override
 	public int run(String[] args) throws Exception {
@@ -101,15 +90,22 @@ public class FoafShortestPathsVertex extends EdgeListVertex<NodeWritable, IntWri
             fs.delete(new Path(args[1]), true);
         }
 
+        GiraphConfiguration giraphConfiguration = new GiraphConfiguration(getConf());
+        giraphConfiguration.setVertexClass(getClass());
+        giraphConfiguration.setVertexInputFormatClass(TurtleVertexInputFormat.class);
+		giraphConfiguration.setVertexOutputFormatClass(TurtleVertexOutputFormat.class);
+		giraphConfiguration.set(SOURCE_URI, args[2]);
+		giraphConfiguration.setWorkerConfiguration(Integer.parseInt(args[3]), Integer.parseInt(args[3]), 100.0f);
+        
 		GiraphJob job = new GiraphJob(getConf(), getClass().getName());
-		job.setVertexClass(getClass());
-		job.setVertexInputFormatClass(TurtleVertexInputFormat.class);
-		job.setVertexOutputFormatClass(TurtleVertexOutputFormat.class);
 		FileInputFormat.addInputPath(job.getInternalJob(), new Path(args[0]));
 		FileOutputFormat.setOutputPath(job.getInternalJob(), new Path(args[1]));
-		job.getConfiguration().set(SOURCE_URI, args[2]);
-		job.setWorkerConfiguration(Integer.parseInt(args[3]), Integer.parseInt(args[3]), 100.0f);
 		return job.run(true) ? 0 : -1;
+	}
+
+	@Override
+	public void setConf(Configuration conf) {
+		super.setConf(new ImmutableClassesGiraphConfiguration<NodeWritable, IntWritable, NodeWritable, IntWritable>(conf));
 	}
 
 	public static void main(String[] args) throws Exception {

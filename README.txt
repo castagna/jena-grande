@@ -30,7 +30,7 @@
 
     svn co https://svn.apache.org/repos/asf/giraph/trunk/ apache-giraph
     cd apache-giraph
-    mvn -P hadoop_1.0 install
+    mvn -P hadoop_2.0.0 install
 
   ...
 

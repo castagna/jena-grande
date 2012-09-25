@@ -46,8 +46,8 @@ public class TestPageRank extends TestCase {
 	private static final String filename = "src/test/resources/pagerank.txt"; 
 	private static final double dumping_factor = ( 0.85d );
 	private static final double alpha = ( 1.0d - dumping_factor );
-	private static final int iterations = 30;
-	private static final double tolerance = 0.0000001d;
+	private static final int iterations = PageRankVertex.DEFAULT_NUM_ITERATIONS;
+	private static final double tolerance = PageRankVertex.DEFAULT_TOLERANCE;
 	
 	public void testPlainPageRank() throws IOException {
 		File input = new File (filename);
@@ -87,7 +87,7 @@ public class TestPageRank extends TestCase {
 		String[] array1 = sortByValue(result1).keySet().toArray(new String[]{});
 		String[] array2 = sortByValue(result2).keySet().toArray(new String[]{});
 		for ( int i = 0; i < array1.length; i++ ) {
-			assertEquals ( array1[i], array2[i] );
+			assertEquals ( dump(result1, result2), array1[i], array2[i] );
 		}
 
 		// pagerank values should be a probability distribution, right? Sum should be 1 then.

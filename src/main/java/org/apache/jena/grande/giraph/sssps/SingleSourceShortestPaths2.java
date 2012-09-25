@@ -21,9 +21,12 @@ package org.apache.jena.grande.giraph.sssps;
 import java.io.IOException;
 import java.util.Arrays;
 
+import org.apache.giraph.GiraphConfiguration;
+import org.apache.giraph.ImmutableClassesGiraphConfiguration;
 import org.apache.giraph.graph.Edge;
 import org.apache.giraph.graph.EdgeListVertex;
 import org.apache.giraph.graph.GiraphJob;
+import org.apache.giraph.io.IdWithValueTextOutputFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -39,8 +42,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-
-import dev.MyIdWithValueTextOutputFormat;
 
 public class SingleSourceShortestPaths2 extends EdgeListVertex<Text, Text, NullWritable, Text> implements Tool {
 
@@ -62,14 +63,16 @@ public class SingleSourceShortestPaths2 extends EdgeListVertex<Text, Text, NullW
             fs.delete(new Path(args[1]), true);
         }
 
-		GiraphJob job = new GiraphJob(getConf(), getClass().getName());
-		job.setVertexClass(getClass());
-		job.setVertexInputFormatClass(TextTextNullTextTextVertexInputFormat.class);
-		job.setVertexOutputFormatClass(MyIdWithValueTextOutputFormat.class);
+        GiraphConfiguration giraphConfiguration = new GiraphConfiguration(getConf());
+		giraphConfiguration.setVertexClass(getClass());
+		giraphConfiguration.setVertexInputFormatClass(TextTextNullTextTextVertexInputFormat.class);
+		giraphConfiguration.setVertexOutputFormatClass(IdWithValueTextOutputFormat.class);
+		giraphConfiguration.set(SOURCE_VERTEX, args[2]);
+		giraphConfiguration.setWorkerConfiguration(Integer.parseInt(args[3]), Integer.parseInt(args[3]), 100.0f);
+
+		GiraphJob job = new GiraphJob(giraphConfiguration, getClass().getName());
 		FileInputFormat.addInputPath(job.getInternalJob(), new Path(args[0]));
 		FileOutputFormat.setOutputPath(job.getInternalJob(), new Path(args[1]));
-		job.getConfiguration().set(SOURCE_VERTEX, args[2]);
-		job.setWorkerConfiguration(Integer.parseInt(args[3]), Integer.parseInt(args[3]), 100.0f);
 		return job.run(true) ? 0 : -1;
 	}
 
@@ -160,6 +163,11 @@ public class SingleSourceShortestPaths2 extends EdgeListVertex<Text, Text, NullW
 		boolean result = getId().toString().equals ( getConf().get(SOURCE_VERTEX, SOURCE_VERTEX_DEFAULT) );
 		log.debug("{}#{} - isSource() --> {}", new Object[]{getId(), getSuperstep(), result});
 		return result;
+	}
+	
+	@Override
+	public void setConf(Configuration conf) {
+		super.setConf(new ImmutableClassesGiraphConfiguration<Text, Text, NullWritable, Text>(conf));
 	}
 
 	public static void main(String[] args) throws Exception {

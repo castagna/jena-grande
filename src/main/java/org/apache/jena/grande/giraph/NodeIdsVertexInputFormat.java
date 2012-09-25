@@ -20,7 +20,7 @@ package org.apache.jena.grande.giraph;
 
 import java.io.IOException;
 
-import org.apache.giraph.graph.VertexReader;
+import org.apache.giraph.graph.Vertex;
 import org.apache.giraph.io.TextVertexInputFormat;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Writable;
@@ -30,8 +30,26 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 public class NodeIdsVertexInputFormat<V extends Writable, M extends Writable> extends TextVertexInputFormat<LongWritable, V, LongWritable, M> {
 
 	@Override
-	public VertexReader<LongWritable, V, LongWritable, M> createVertexReader(InputSplit split, TaskAttemptContext context) throws IOException {
-	    return new NodeIdsVertexReader<V, M>(textInputFormat.createRecordReader(split, context));
+	public TextVertexReader createVertexReader(InputSplit split, TaskAttemptContext context) throws IOException {
+	    return new NodeIdsVertexReader();
 	}
 
+	public class NodeIdsVertexReader extends TextVertexInputFormat<LongWritable, V, LongWritable, M> .TextVertexReader {
+
+		@Override
+		public boolean nextVertex() throws IOException, InterruptedException {
+			return getRecordReader().nextKeyValue();
+		}
+
+		@Override
+		public Vertex<LongWritable, V, LongWritable, M> getCurrentVertex() throws IOException, InterruptedException {
+//			Vertex<LongWritable, V, LongWritable, M> vertex = BspUtils.createVertex(getContext().getConfiguration());
+//			LongWritable key = getRecordReader().getCurrentKey();
+//			Text value = getRecordReader().getCurrentValue();
+
+			return null;
+		}
+
+	}
+	
 }

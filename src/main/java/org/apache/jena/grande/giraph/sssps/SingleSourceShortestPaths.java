@@ -20,6 +20,8 @@ package org.apache.jena.grande.giraph.sssps;
 
 import java.io.IOException;
 
+import org.apache.giraph.GiraphConfiguration;
+import org.apache.giraph.ImmutableClassesGiraphConfiguration;
 import org.apache.giraph.graph.Edge;
 import org.apache.giraph.graph.EdgeListVertex;
 import org.apache.giraph.graph.GiraphJob;
@@ -61,14 +63,16 @@ public class SingleSourceShortestPaths extends EdgeListVertex<IntWritable, IntWr
             fs.delete(new Path(args[1]), true);
         }
 
-		GiraphJob job = new GiraphJob(getConf(), getClass().getName());
-		job.setVertexClass(getClass());
-		job.setVertexInputFormatClass(IntIntNullIntTextInputFormat.class);
-		job.setVertexOutputFormatClass(IdWithValueTextOutputFormat.class);
+        GiraphConfiguration giraphConfiguration = new GiraphConfiguration(getConf());
+        giraphConfiguration.setVertexClass(getClass());
+        giraphConfiguration.setVertexInputFormatClass(IntIntNullIntTextInputFormat.class);
+        giraphConfiguration.setVertexOutputFormatClass(IdWithValueTextOutputFormat.class);
+		giraphConfiguration.set(SOURCE_VERTEX, args[2]);
+		giraphConfiguration.setWorkerConfiguration(Integer.parseInt(args[3]), Integer.parseInt(args[3]), 100.0f);
+
+		GiraphJob job = new GiraphJob(giraphConfiguration, getClass().getName());
 		FileInputFormat.addInputPath(job.getInternalJob(), new Path(args[0]));
 		FileOutputFormat.setOutputPath(job.getInternalJob(), new Path(args[1]));
-		job.getConfiguration().set(SOURCE_VERTEX, args[2]);
-		job.setWorkerConfiguration(Integer.parseInt(args[3]), Integer.parseInt(args[3]), 100.0f);
 		return job.run(true) ? 0 : -1;
 	}
 
@@ -102,9 +106,14 @@ public class SingleSourceShortestPaths extends EdgeListVertex<IntWritable, IntWr
 		return result;
 	}
 
+	@Override
+	public void setConf(Configuration conf) {
+		super.setConf(new ImmutableClassesGiraphConfiguration<IntWritable, IntWritable, NullWritable, IntWritable>(conf));
+	}
+	
 	public static void main(String[] args) throws Exception {
 		log.debug("main({})", Utils.toString(args));
 		System.exit(ToolRunner.run(new SingleSourceShortestPaths(), args));
 	}
-	
+
 }

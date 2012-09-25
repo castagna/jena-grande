@@ -32,14 +32,13 @@ public class RunGiraphFoaf {
 	};
 	
 	public static void main(String[] args) throws Exception {
-	    Iterable<String> results = InternalVertexRunner.run(
+	    /* Iterable<String> results = */ InternalVertexRunner.run(
 	    	FoafShortestPathsVertex.class,
 	        TurtleVertexInputFormat.class,
 	        TurtleVertexOutputFormat.class,
 	        RunGiraphTest.params, 
 	        data
 	    );
-
 
 	}
 	

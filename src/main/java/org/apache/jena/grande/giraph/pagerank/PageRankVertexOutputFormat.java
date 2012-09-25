@@ -20,20 +20,27 @@ package org.apache.jena.grande.giraph.pagerank;
 
 import java.io.IOException;
 
-import org.apache.giraph.graph.VertexWriter;
+import org.apache.giraph.graph.Vertex;
 import org.apache.giraph.io.TextVertexOutputFormat;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
 public class PageRankVertexOutputFormat extends TextVertexOutputFormat<Text, DoubleWritable, NullWritable> {
 
 	@Override
-	public VertexWriter<Text, DoubleWritable, NullWritable> createVertexWriter ( TaskAttemptContext context ) throws IOException, InterruptedException {
-		RecordWriter<Text, Text> recordWriter = textOutputFormat.getRecordWriter ( context );
-		return new PageRankVertexWriter ( recordWriter );
+	public TextVertexWriter createVertexWriter ( TaskAttemptContext context ) throws IOException, InterruptedException {
+		return new PageRankVertexWriter();
+	}
+	
+	public class PageRankVertexWriter extends TextVertexWriter {
+
+		@Override
+		public void writeVertex ( Vertex<Text, DoubleWritable, NullWritable, ?> vertex ) throws IOException, InterruptedException {
+			getRecordWriter().write ( vertex.getId(), new Text(vertex.getValue().toString()) );
+		}
+
 	}
 
 }
