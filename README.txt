@@ -1,5 +1,4 @@
 
-
                           J e n a    G r a n d e
 
 
@@ -30,7 +29,7 @@
 
     svn co https://svn.apache.org/repos/asf/giraph/trunk/ apache-giraph
     cd apache-giraph
-    mvn -P hadoop_2.0.0 install
+    mvn -P hadoop_cdh4.1.2 install (see GIRAPH-418)
 
   ...
 
