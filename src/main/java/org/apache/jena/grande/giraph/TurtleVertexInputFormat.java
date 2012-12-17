@@ -73,7 +73,7 @@ public class TurtleVertexInputFormat extends TextVertexInputFormat<NodeWritable,
 			NodeWritable vertexId = getVertexId(line);
 			Graph graph = RiotLoader.graphFromString(line.toString(), Lang.TURTLE, "");
 			Map<NodeWritable, NodeWritable> edgeMap = getEdgeMap(vertexId, graph);
-			vertex.initialize(vertexId, null, edgeMap, null);
+			vertex.initialize(vertexId, null, edgeMap);
 			log.debug("getCurrentVertex() --> {}", vertex);
 			return vertex;
 		}

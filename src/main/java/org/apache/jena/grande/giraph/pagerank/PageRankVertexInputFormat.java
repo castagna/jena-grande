@@ -70,7 +70,7 @@ public class PageRankVertexInputFormat extends TextVertexInputFormat<Text, Doubl
 		    	}
 		    }
 
-		    vertex.initialize ( vertexId, vertexValue, edges, null );
+		    vertex.initialize ( vertexId, vertexValue, edges );
 			log.debug("getCurrentVertex() --> {}", vertex);
 		    return vertex;
 		}

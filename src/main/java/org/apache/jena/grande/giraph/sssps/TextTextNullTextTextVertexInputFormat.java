@@ -30,7 +30,6 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 public class TextTextNullTextTextVertexInputFormat extends TextVertexInputFormat<Text, Text, NullWritable, Text> {
@@ -58,7 +57,7 @@ public class TextTextNullTextTextVertexInputFormat extends TextVertexInputFormat
 		        edges.put(new Text(tokens[n]), NullWritable.get());
 			}
 			Text vertexId = new Text(tokens[0]);
-			vertex.initialize(vertexId, vertexId, edges, Lists.<Text>newArrayList());
+			vertex.initialize(vertexId, vertexId, edges);
 			return vertex;
 		}
 
